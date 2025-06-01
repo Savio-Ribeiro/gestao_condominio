@@ -1,0 +1,24 @@
+/* Estilo para os campos lado a lado no admin */
+.inline-group .tabular td.field-numero_apartamento,
+.inline-group .tabular td.field-bloco {
+    width: 50% !important;
+}
+
+/* Espaçamento entre os campos */
+.inline-group .tabular td.field-numero_apartamento {
+    padding-right: 10px !important;
+}
+
+/* Oculta o campo de quantidade inicialmente */
+.field-quantidade_apartamentos {
+    display: none;
+    margin: 10px 0;
+    padding: 10px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+}
+
+/* Estilo para o título dos apartamentos */
+.field-apartamento_set h2 {
+    margin-top: 20px;
+}

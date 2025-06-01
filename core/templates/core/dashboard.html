@@ -1,0 +1,137 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+
+<div class="row">
+    <div class="col-lg-4 col-12 mb-4">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>{{ chamados_ativos }}</h3>
+                <p>Meus Chamados</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            <a href="{% url 'core:acompanhar_chamados' %}" class="small-box-footer">
+                Ver detalhes <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-lg-4 col-12 mb-4">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>{{ chamados_ativos }}</h3>
+                <p>Chamados Ativos</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            <a href="{% url 'core:acompanhar_chamados' %}" class="small-box-footer">
+                Ver detalhes <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 col-12 mb-4">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3>{{ chamados_finalizados }}</h3>
+                <p>Chamados Finalizados</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <a href="{% url 'core:historico_chamados' %}" class="small-box-footer">
+                Ver detalhes <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 col-12 mb-4">
+        <div class="small-box bg-warning">
+            <div class="inner">
+                <h3>{{ pagamentos_pendentes }}</h3>
+                <p>Pagamentos Pendentes</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <a href="{% url 'core:financeiro' %}" class="small-box-footer">
+                Ver detalhes <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">Últimos Chamados</h3>
+            </div>
+            <div class="card-body p-0">
+                <ul class="products-list product-list-in-card pl-2 pr-2">
+                    {% for chamado in ultimos_chamados %}
+                    <li class="item">
+                        <div class="product-img">
+                            <i class="fas fa-tools fa-2x"></i>
+                        </div>
+                        <div class="product-info">
+                            <a href="{% url 'core:detalhe_chamado' chamado.id %}" class="product-title">
+                                {{ chamado.titulo }}
+                                <span class="badge badge-{{ chamado.get_status_color }} float-right">
+                                    {{ chamado.get_status_display }}
+                                </span>
+                            </a>
+                            <span class="product-description">
+                                {{ chamado.descricao|truncatechars:50 }}
+                            </span>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="item text-center text-muted">Nenhum chamado recente.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card card-success card-outline">
+            <div class="card-header">
+                <h3 class="card-title">Últimos Pagamentos</h3>
+            </div>
+            <div class="card-body p-0">
+                <ul class="products-list product-list-in-card pl-2 pr-2">
+                    {% for pagamento in ultimos_pagamentos %}
+                    <li class="item">
+                        <div class="product-img">
+                            <i class="fas fa-money-bill-wave fa-2x"></i>
+                        </div>
+                        <div class="product-info">
+                            <a href="#" class="product-title">
+                                {{ pagamento.descricao }}
+                                <span class="badge badge-{{ pagamento.get_status_color }} float-right">
+                                    {{ pagamento.get_status_display }}
+                                </span>
+                            </a>
+                            <span class="product-description">
+                                R$ {{ pagamento.valor }} - Vencimento: {{ pagamento.data_vencimento }}
+                            </span>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="item text-center text-muted">Nenhum pagamento recente.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

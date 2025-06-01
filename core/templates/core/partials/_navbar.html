@@ -1,0 +1,105 @@
+{% if user.is_authenticated %}
+{% load static %}
+{% load auth_extras %}
+
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo Simplificado -->
+    <a href="{% url 'core:dashboard' %}" class="brand-link bg-white" style="padding: 10px 15px; justify-content: center;">
+        <img src="/media/media/logo-realrealty.png" alt="Logo" style="height: 40px; width: auto;">
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Sidebar Menu -->
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a href="{% url 'core:dashboard' %}" class="nav-link">
+                        <i class="nav-icon fas fa-home text-primary" style="font-size: 0.9rem;"></i>
+                        <p>Dashboard</p>
+                    </a>
+                </li>
+
+                <!-- Novo Usuário (apenas para admin/síndico) -->
+                {% if user.is_authenticated and user|is_admin_or_sindico %}
+                <a href="{% url 'core:register' %}" class="nav-link">
+                    <i class="nav-icon fas fa-user-plus text-success"></i>
+                    <p>Cadastrar usuário</p>
+                </a>
+
+                {% endif %}
+
+                <!-- Comunicado -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-bullhorn text-info" style="font-size: 0.9rem;"></i>
+                        <p>Comunicado</p>
+                    </a>
+                </li>
+
+                <!-- Chamados - Menu com subitens -->
+                <li class="nav-item has-treeview menu-open">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-tools text-warning" style="font-size: 0.9rem;"></i>
+                        <p>
+                            Chamados
+                            <i class="right fas fa-angle-left" style="font-size: 0.8rem;"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{% url 'core:abrir_chamado' %}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-warning" style="font-size: 0.8rem;"></i>
+                                <p>Abrir Chamado</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'core:acompanhar_chamados' %}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-warning" style="font-size: 0.8rem;"></i>
+                                <p>Chamados Ativos</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'core:chamados_encerrados' %}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-warning" style="font-size: 0.8rem;"></i>
+                                <p>Chamados Encerrados</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</aside>
+
+<style>
+    /* Estilos simplificados */
+    .brand-link {
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .nav-sidebar > .nav-item {
+        margin-bottom: 2px;
+    }
+    .nav-sidebar .nav-link {
+        border-radius: 0;
+        margin: 0;
+        padding: 8px 15px;
+    }
+    .nav-sidebar .nav-link p {
+        font-size: 0.9rem;
+        margin-left: 5px;
+        display: inline-block;
+    }
+    .nav-treeview {
+        padding-left: 15px;
+    }
+    .nav-treeview .nav-link p {
+        font-size: 0.85rem;
+    }
+    .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active {
+        border-left: 2px solid #007bff;
+        background-color: rgba(255,255,255,0.05);
+    }
+</style>
+{% endif %}

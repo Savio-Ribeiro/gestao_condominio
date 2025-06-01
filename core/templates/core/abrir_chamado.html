@@ -1,0 +1,65 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-lg rounded-4 border-0">
+                <div class="card-body p-4">
+                    <h2 class="mb-4 text-center text-primary">
+                        <i class="fas fa-plus-circle me-2"></i> Abrir Novo Chamado
+                    </h2>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="form-floating mb-3">
+                            {{ form.apartamento|add_class:"form-select" }}
+                            <label for="{{ form.apartamento.id_for_label }}">Apartamento/Bloco</label>
+                            {% if form.apartamento.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.apartamento.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            {{ form.titulo|add_class:"form-control" }}
+                            <label for="{{ form.titulo.id_for_label }}">Título do Chamado</label>
+                            {% if form.titulo.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.titulo.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            {{ form.descricao|add_class:"form-control" }}
+                            <label for="{{ form.descricao.id_for_label }}">Descrição Detalhada</label>
+                            <style>
+                                textarea.form-control {
+                                    height: 180px !important;
+                                }
+                            </style>
+                            {% if form.descricao.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.descricao.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i> Enviar Chamado
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

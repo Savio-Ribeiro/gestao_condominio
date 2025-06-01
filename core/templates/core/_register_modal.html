@@ -1,0 +1,42 @@
+<div class="modal fade" id="registerModal" tabindex="-1" role="dialog" aria-labelledby="registerModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="registerModalLabel">Cadastro de Usuário</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'core:register' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Tipo de usuário</label>
+                        <select class="form-control" name="tipo_usuario">
+                            <option value="proprietario">Proprietário</option>
+                            <option value="sindico">Síndico</option>
+                            <option value="administrador">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantidade de Apartamentos</label>
+                        <input type="number" class="form-control" name="quantidade_apartamentos">
+                    </div>
+                    <div class="form-group">
+                        <label>Nome Completo</label>
+                        <input type="text" class="form-control" name="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nome do Condomínio</label>
+                        <input type="text" class="form-control" name="condominio" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CPF</label>
+                        <input type="text" class="form-control" name="cpf" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cadastrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

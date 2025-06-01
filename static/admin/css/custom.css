@@ -1,0 +1,22 @@
+/* static/admin/css/custom.css */
+#apartamentos-container {
+  margin-top: 15px;
+}
+
+#apartamentos-container .form-row {
+  margin-bottom: 10px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+#apartamentos-container label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+#apartamentos-container input {
+  padding: 5px;
+  width: 100%;
+}

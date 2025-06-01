@@ -1,0 +1,24 @@
+{% extends "core/base.html" %}
+
+{% block title %}Página Inicial{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4>Bem-vindo ao Sistema de Gestão de Condomínio</h4>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Este sistema permite gerenciar chamados técnicos, finanças e comunicação do condomínio.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'core:login' %}" class="btn btn-primary">Acessar Sistema</a>
+                    <a href="{% url 'core:register' %}" class="btn btn-secondary">Criar Conta</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

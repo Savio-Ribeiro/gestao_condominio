@@ -1,0 +1,29 @@
+/* Estilo para o campo de quantidade */
+.field-quantidade_apartamentos {
+  background: #f8f8f8;
+  padding: 10px;
+  margin: 15px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  clear: both;
+}
+
+.field-quantidade_apartamentos .fieldBox {
+  margin: 5px 0;
+}
+
+/* Melhora a visualização dos campos de apartamento */
+.inline-related .tabular tr.has_original td {
+  vertical-align: top;
+}
+
+.inline-related .tabular td.field-numero_apartamento,
+.inline-related .tabular td.field-bloco {
+  width: 50%;
+  float: left;
+  box-sizing: border-box;
+}
+
+.inline-related .tabular td.field-numero_apartamento {
+  padding-right: 10px;
+}

@@ -1,0 +1,60 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Meus Chamados</h2>
+        <a href="{% url 'core:abrir_chamado' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Abrir Novo Chamado
+        </a>
+    </div>
+
+    {% if chamados.exists %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <!-- Cabeçalho da tabela -->
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Status</th>
+                    <th>Data Abertura</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <!-- Corpo da tabela -->
+            <tbody>
+                {% for chamado in chamados %}
+                <tr>
+                    <td>{{ chamado.id }}</td>
+                    <td>{{ chamado.titulo }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if chamado.status == 'A' %}bg-info
+                            {% elif chamado.status == 'E' %}bg-warning
+                            {% elif chamado.status == 'F' %}bg-success
+                            {% else %}bg-secondary{% endif %}">
+                            {{ chamado.get_status_display }}
+                        </span>
+                    </td>
+                    <td>{{ chamado.data_abertura|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'core:detalhe_chamado' chamado.id %}" 
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i> Detalhes
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        Nenhum chamado em aberto encontrado.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

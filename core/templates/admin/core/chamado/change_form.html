@@ -1,0 +1,105 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block content %}
+{{ block.super }}
+
+{% if custom_view %}
+<hr>
+<h3 style="margin-top: 40px;">Histórico de Mensagens</h3>
+
+<div class="chat-wrapper">
+    <div class="chat-container mb-4">
+        {% for mensagem in mensagens %}
+            <div class="message {% if mensagem.is_resposta_tecnica %}admin-message{% else %}user-message{% endif %}">
+                <div class="message-header">
+                    <strong>
+                        {% if mensagem.is_resposta_tecnica %}
+                            Admin: {{ mensagem.usuario.get_full_name }}
+                        {% else %}
+                            {{ mensagem.usuario.get_full_name }}
+                            {% if mensagem.chamado.apartamento %}
+                                (Apto {{ mensagem.chamado.apartamento.numero_apartamento }}{% if mensagem.chamado.apartamento.bloco %} - Bloco {{ mensagem.chamado.apartamento.bloco }}{% endif %})
+                            {% endif %}
+                        {% endif %}
+                    </strong>
+                    <small class="text-muted">{{ mensagem.data_envio|date:"d/m/Y H:i" }}</small>
+                </div>
+                <div class="message-body">{{ mensagem.mensagem|linebreaks }}</div>
+            </div>
+        {% empty %}
+            <div class="alert alert-info">Nenhuma mensagem encontrada.</div>
+        {% endfor %}
+    </div>
+
+    <h4 class="mt-4">Responder Chamado</h4>
+    <form method="post" class="resposta-form">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ mensagem_form.mensagem.label_tag }}
+            {{ mensagem_form.mensagem }}
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">
+            <i class="fas fa-reply"></i> Enviar resposta
+        </button>
+    </form>
+</div>
+
+<style>
+    .chat-wrapper {
+        max-width: 90%;
+        margin: 0 auto;
+    }
+
+    .chat-container {
+        background: #f8f9fa;
+        border: 1px solid #ccc;
+        padding: 1.5rem;
+        border-radius: 8px;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .message {
+        margin-bottom: 1.2rem;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .user-message {
+        background-color: #e3f2fd;
+        border: 1px solid #bbdefb;
+    }
+
+    .admin-message {
+        background-color: #f1f1f1;
+        border: 1px solid #d6d6d6;
+    }
+
+    .message-header {
+        font-size: 0.9em;
+        margin-bottom: 5px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding-bottom: 4px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .message-body {
+        white-space: pre-wrap;
+        line-height: 1.5;
+        font-size: 0.95em;
+    }
+
+    .resposta-form textarea {
+        width: 100%;
+        min-height: 120px;
+        padding: 10px;
+        font-size: 1em;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+    }
+</style>
+{% endif %}
+
+{% endblock %}

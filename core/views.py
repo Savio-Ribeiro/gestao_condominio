@@ -391,8 +391,7 @@ def perfil(request):
 def get_user_photo_url(user):
     if user.foto and hasattr(user.foto, 'url'):
         return user.foto.url
-    return static('images/default.jpg')
-
+    return static('img/foto-perfil.png')
 
 @login_required
 def perfil(request):

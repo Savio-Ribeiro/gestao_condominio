@@ -1,5 +1,5 @@
 <!--{% block show_nav %}False{% endblock %}-->
-
+{% load static %}
 {% if user.is_authenticated %}
 <nav class="main-header navbar navbar-expand navbar-white navbar-light">
     <!-- Botão para exibir/ocultar sidebar no mobile -->
@@ -10,7 +10,7 @@
     <ul class="navbar-nav ml-auto d-flex align-items-center">
         <li class="nav-item d-flex align-items-center mr-3">
             <span class="mr-2">Bem-vindo, {{ primeiro_nome }}</span>
-            <img src="{% if user.foto %}{{ user.foto.url }}{% else %}/media/usuarios/avatar.png{% endif %}"
+            <img src="{% if user.foto %}{{ user.foto.url }}{% else %}{% static 'img/usuarios/avatar.png' %}{% endif %}" alt="Foto do usuário"
                  alt="Avatar"
                  class="img-size-32 img-circle"
                  style="object-fit: cover; width:32px; height:32px;">

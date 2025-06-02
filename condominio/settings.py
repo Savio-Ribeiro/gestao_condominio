@@ -4,25 +4,23 @@ from decouple import config
 from pathlib import Path
 from dj_database_url import parse as dburl
 
-# Evita erros de recursão em templates complexos
 sys.setrecursionlimit(3000)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Diretório para logs
 LOG_DIR = os.path.join(BASE_DIR, 'logs')
 os.makedirs(LOG_DIR, exist_ok=True)
 
 # Segurança
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
+
 ALLOWED_HOSTS = [
     'gestao-de-condominio-2444982d0f4b.herokuapp.com',
     'localhost',
     '127.0.0.1'
 ]
 
-# Apps
+# Apps instalados
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -55,7 +53,7 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 # Middleware
 MIDDLEWARE = [
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve arquivos estáticos no Heroku
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -93,18 +91,10 @@ DATABASES = {
 
 # Validação de senha
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 # Internacionalização
@@ -114,43 +104,37 @@ USE_I18N = True
 USE_TZ = True
 SILENCED_SYSTEM_CHECKS = ['urls.W002']
 
-# Arquivos estáticos
+# Arquivos estáticos (Heroku)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Arquivos de mídia
+# Arquivos de mídia (usado apenas em ambiente local ou com S3/Cloudinary em produção)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# ID padrão para campos auto-incrementados
+# Campo padrão para models
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Logging para debug em produção
+# Logs
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-
     'formatters': {
         'simple': {
             'format': '[{levelname}] {asctime} {name} - {message}',
             'style': '{',
         },
     },
-
     'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'simple'},
         'file': {
             'class': 'logging.FileHandler',
             'filename': os.path.join(LOG_DIR, 'django.log'),
             'formatter': 'simple',
         },
     },
-
     'loggers': {
         'django': {
             'handlers': ['console', 'file'],

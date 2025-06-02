@@ -184,3 +184,59 @@ body {
     padding: 30px 20px;
   }
 }
+.chamado-item {
+    display: grid;
+    grid-template-columns: 1fr 100px;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #f4f4f4;
+}
+
+.chamado-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chamado-botao {
+    display: flex;
+    justify-content: center;
+}
+/* Adicione ao seu arquivo CSS */
+.comunicado-form {
+    background: #f8f9fa;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.comunicado-form .form-group {
+    margin-bottom: 15px;
+}
+/* Estilos para o rodapé */
+/* Garante espaço entre o conteúdo e o rodapé */
+.app-footer {
+  position: relative;
+  z-index: 10; /* Garante que fique acima de outros elementos */
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  margin-top: 2rem; /* Espaço extra acima do rodapé */
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+}
+
+/* Ajuste para mobile */
+@media (max-width: 768px) {
+  .app-footer {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .app-footer .d-flex {
+    flex-direction: column;
+  }
+
+  .app-footer span:not(:last-child) {
+    margin-bottom: 0.5rem;
+  }
+}

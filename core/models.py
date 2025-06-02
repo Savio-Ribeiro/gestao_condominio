@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.core.validators import RegexValidator
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from PIL import Image
 
@@ -213,3 +214,39 @@ class AdministradorProxy(Usuario):
         proxy = True
         verbose_name = 'Administrador'
         verbose_name_plural = 'Administradores'
+
+class Comunicado(models.Model):
+    titulo = models.CharField(max_length=200)
+    conteudo = models.TextField()
+    imagem = models.ImageField(upload_to='comunicados/', blank=True, null=True)
+    data_publicacao = models.DateTimeField(auto_now_add=True)
+    autor = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
+    publicado = models.BooleanField(default=True)
+
+    autor = models.ForeignKey(
+        Usuario,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Síndico Responsável",
+        limit_choices_to={'tipo_usuario': 'sindico'}  # Filtra apenas síndicos
+    )
+    
+    def get_autor_nome(self):
+        return self.autor.nome if self.autor else "Não definido"
+    get_autor_nome.short_description = "Síndico"
+
+    class Meta:
+        verbose_name = 'Comunicado'
+        verbose_name_plural = 'Comunicados'
+        ordering = ['-data_publicacao']
+    
+    @property
+    def nome_autor(self):
+        return self.autor.nome if self.autor else "Não definido"
+
+    def __str__(self):
+        return f"{self.titulo} (por {self.autor.nome if self.autor else 'sem autor'})"
+
+    def get_absolute_url(self):
+        return reverse('core:detalhe_comunicado', args=[str(self.id)])

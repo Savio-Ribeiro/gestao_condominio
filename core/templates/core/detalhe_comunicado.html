@@ -1,0 +1,30 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ comunicado.titulo }}{% endblock %}
+{% block page_title %}{{ comunicado.titulo }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            {% if comunicado.imagem %}
+            <img src="{{ comunicado.imagem.url }}" class="card-img-top" alt="{{ comunicado.titulo }}">
+            {% endif %}
+            <div class="card-body">
+                <p class="text-muted">
+                    Publicado em: {{ comunicado.data_publicacao|date:"d/m/Y H:i" }}
+                    {% if comunicado.autor %}
+                    por {{ comunicado.autor.nome }}
+                    {% endif %}
+                </p>
+                <div class="card-text">
+                    {{ comunicado.conteudo|linebreaks }}
+                </div>
+                <a href="{% url 'core:lista_comunicados' %}" class="btn btn-secondary mt-3">
+                    Voltar para Comunicados
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "core/base.html" %}
+
+{% block title %}Comunicados{% endblock %}
+{% block page_title %}Comunicados{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        {% for comunicado in comunicados %}
+        <div class="col-lg-4 col-md-6 mb-4">  <!-- SEU CÓDIGO VEM AQUI -->
+            <div class="card h-100">
+                {% if comunicado.imagem %}
+                <img src="{{ comunicado.imagem.url }}" class="card-img-top" alt="{{ comunicado.titulo }}" style="height: 200px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ comunicado.titulo }}</h5>
+                    <p class="card-text">{{ comunicado.conteudo|truncatewords:20 }}</p>
+                </div>
+                <div class="card-footer bg-white">
+                    <a href="{% url 'core:detalhe_comunicado' comunicado.pk %}" class="btn btn-primary btn-sm">Ler mais</a>
+                    <small class="text-muted float-right">
+                        {{ comunicado.data_publicacao|date:"d/m/Y H:i" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% if forloop.counter|divisibleby:3 and not forloop.last %}
+    </div>
+    <div class="row">
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

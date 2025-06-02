@@ -11,8 +11,10 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.sites.shortcuts import get_current_site
 from django.http import HttpResponse, HttpResponseForbidden
-from .models import Usuario, Chamado, MensagemChamado, Pagamento, Apartamento
-from .forms import UsuarioRegistrationForm, LoginForm, ChamadoForm, MensagemChamadoForm, PagamentoForm
+
+from core.admin import ComunicadoForm
+from .models import Comunicado, Usuario, Chamado, MensagemChamado, Pagamento, Apartamento
+from .forms import ComunicadoDashboardForm, UsuarioRegistrationForm, LoginForm, ChamadoForm, MensagemChamadoForm, PagamentoForm
 import uuid
 from django.templatetags.static import static
 from .forms import UsuarioForm, ApartamentoFormSet
@@ -40,11 +42,45 @@ def profile_view(request):
     return render(request, 'core/profile.html')
 
 @login_required
+@login_required
 def dashboard(request):
+    # Formulários de usuário e apartamento
     usuario_form = UsuarioRegistrationForm()
     formset = ApartamentoFormSet(queryset=Apartamento.objects.none())
 
-    if request.method == 'POST' and request.user.tipo_usuario == 'sindico':
+    # Formulário de comunicado
+    comunicado_form = ComunicadoDashboardForm(request.POST or None, request.FILES or None)
+    
+    # Processamento do formulário de comunicado
+    if request.method == 'POST' and 'criar_comunicado' in request.POST:
+        comunicado_form = ComunicadoDashboardForm(request.POST, request.FILES)
+        if comunicado_form.is_valid():
+            novo_comunicado = comunicado_form.save(commit=False)
+            novo_comunicado.autor = request.user
+            novo_comunicado.publicado = True
+            novo_comunicado.save()
+            messages.success(request, 'Comunicado publicado com sucesso!')
+            return redirect('core:dashboard')
+        else:
+            messages.error(request, 'Por favor, corrija os erros no formulário de comunicado.')
+
+    # Contagem de chamados
+    chamados_ativos = Chamado.objects.filter(usuario=request.user, status__in=['A', 'R']).count()
+    chamados_finalizados = Chamado.objects.filter(usuario=request.user, status='F').count()
+
+    # Últimos chamados ativos
+    ultimos_chamados_ativos = Chamado.objects.filter(
+        usuario=request.user, status__in=['A', 'R']
+    ).order_by('-id')[:3]
+
+    # Últimos comunicados
+    comunicados_recentes = Comunicado.objects.filter(publicado=True).order_by('-data_publicacao')[:3]
+
+    # Primeiro nome do usuário
+    primeiro_nome = request.user.nome.split()[0] if request.user.nome else "Usuário"
+
+    # Processamento do formulário de usuário (para síndicos)
+    if request.method == 'POST' and request.user.tipo_usuario == 'sindico' and 'registrar_usuario' in request.POST:
         usuario_form = UsuarioRegistrationForm(request.POST, request.FILES)
         tipo_usuario = request.POST.get('tipo_usuario', '')
 
@@ -72,14 +108,19 @@ def dashboard(request):
                         apartamento.usuario = usuario
                         apartamento.save()
             messages.success(request, 'Usuário cadastrado com sucesso!')
-            usuario_form = UsuarioRegistrationForm()
-            formset = ApartamentoFormSet(queryset=Apartamento.objects.none())
+            return redirect('core:dashboard')
         else:
             messages.error(request, 'Erro ao cadastrar usuário. Verifique os dados.')
 
     return render(request, 'core/dashboard.html', {
         'form': usuario_form,
-        'formset': formset
+        'formset': formset,
+        'comunicado_form': comunicado_form,
+        'chamados_ativos': chamados_ativos,
+        'chamados_finalizados': chamados_finalizados,
+        'ultimos_chamados_ativos': ultimos_chamados_ativos,
+        'comunicados_recentes': comunicados_recentes,
+        'primeiro_nome': primeiro_nome,
     })
 
 @login_required
@@ -367,3 +408,31 @@ def get_user_photo_url(user):
     if user.foto and hasattr(user.foto, 'url'):
         return user.foto.url
     return static('images/default.jpg')
+
+def lista_comunicados(request):
+    comunicados = Comunicado.objects.filter(publicado=True).order_by('-data_publicacao')
+    return render(request, 'core/comunicados.html', {'comunicados': comunicados})
+
+def detalhe_comunicado(request, pk):
+    comunicado = get_object_or_404(Comunicado, pk=pk, publicado=True)
+    return render(request, 'core/detalhe_comunicado.html', {'comunicado': comunicado})
+
+@login_required
+def comunicado_action(request):
+    if request.method == 'POST' and request.user.tipo_usuario == 'sindico':
+        action = request.POST.get('action')
+        comunicado_id = request.POST.get('comunicado_id')
+        
+        if action and comunicado_id:
+            comunicado = get_object_or_404(Comunicado, id=comunicado_id, autor=request.user)
+            
+            if action == 'delete':
+                comunicado.delete()
+                messages.success(request, 'Comunicado removido com sucesso!')
+            elif action == 'toggle':
+                comunicado.publicado = not comunicado.publicado
+                comunicado.save()
+                
+            return redirect('core:dashboard')
+    
+    return redirect('core:dashboard')

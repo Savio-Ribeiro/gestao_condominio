@@ -3,22 +3,52 @@
 {% block title %}Página Inicial{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 mx-auto">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h4>Bem-vindo ao Sistema de Gestão de Condomínio</h4>
-            </div>
-            <div class="card-body">
-                <p class="card-text">
-                    Este sistema permite gerenciar chamados técnicos, finanças e comunicação do condomínio.
-                </p>
-                <div class="d-grid gap-2">
-                    <a href="{% url 'core:login' %}" class="btn btn-primary">Acessar Sistema</a>
-                    <a href="{% url 'core:register' %}" class="btn btn-secondary">Criar Conta</a>
+<div class="container-fluid px-0">
+    <div class="row justify-content-center mx-0">
+        <div class="col-12 col-md-8 col-lg-6 px-0">
+            <div class="card shadow-lg border-0 mx-auto" style="max-width: 600px;">
+                <div class="card-header bg-gradient-info text-white text-center py-4">
+                    <h2 class="fw-bold mb-0">Bem-vindo ao Sistema de Gestão de Condomínio</h2>
+                </div>
+                <div class="card-body p-5 text-center">
+                    <p class="lead mb-4">
+                        Este sistema permite gerenciar chamados técnicos, finanças e comunicação do condomínio de forma eficiente e moderna.
+                    </p>
+                    <div class="d-grid gap-3 col-md-8 mx-auto">
+                        <a href="{% url 'core:login' %}" class="btn btn-primary btn-lg rounded-pill py-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Acessar Sistema
+                        </a>
+                        <a href="{% url 'core:register' %}" class="btn btn-outline-secondary btn-lg rounded-pill py-3">
+                            <i class="fas fa-user-plus me-2"></i>Criar Conta
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer bg-light text-center py-3">
+                    <p class="small text-muted mb-0">Sistema seguro e confiável para sua comunidade</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #17a2b8, #1dc8e0);
+    }
+    .card {
+        border-radius: 1rem;
+        overflow: hidden;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+    .container-fluid {
+        flex: 1;
+    }
+</style>
 {% endblock %}

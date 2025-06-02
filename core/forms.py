@@ -4,7 +4,7 @@ from django import forms
 from django.forms import modelformset_factory
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from .models import Usuario, Apartamento, Chamado, MensagemChamado, Pagamento
+from .models import Comunicado, Usuario, Apartamento, Chamado, MensagemChamado, Pagamento
 
 
 # Formulário usado no admin para criar/editar usuários com campo extra
@@ -125,3 +125,26 @@ class ApartamentoForm(forms.ModelForm):
 
 # Formset de apartamento
 ApartamentoFormSet = modelformset_factory(Apartamento, form=ApartamentoForm, extra=0)
+
+class ComunicadoDashboardForm(forms.ModelForm):
+    class Meta:
+        model = Comunicado
+        fields = ['titulo', 'conteudo', 'imagem']
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Título do comunicado'
+            }),
+            'conteudo': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Digite o conteúdo do comunicado...'
+            }),
+            'imagem': forms.FileInput(attrs={
+                'class': 'form-control-file',
+                'accept': 'image/*'
+            })
+        }
+        labels = {
+            'imagem': 'Imagem (Opcional)'
+        }

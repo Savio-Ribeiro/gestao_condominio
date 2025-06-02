@@ -1,4 +1,5 @@
 from django.contrib import admin
+from .models import Comunicado, Usuario
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.http import HttpResponseRedirect
@@ -296,3 +297,50 @@ class PagamentoAdmin(admin.ModelAdmin):
 # Registro dos Proxies
 admin.site.register(ClienteProxy, ClienteAdmin)
 admin.site.register(AdministradorProxy, AdministradorAdmin)
+
+
+class ComunicadoForm(forms.ModelForm):
+    class Meta:
+        model = Comunicado
+        fields = '__all__'
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Configuração definitiva para o campo autor
+        self.fields['autor'].required = True  # Torna o campo obrigatório
+        self.fields['autor'].empty_label = None  # Remove completamente a opção None
+        self.fields['autor'].label_from_instance = lambda obj: f"{obj.nome} (Síndico)"
+        self.fields['autor'].queryset = Usuario.objects.filter(
+            tipo_usuario='sindico'
+        ).exclude(nome__isnull=True).exclude(nome__exact='').order_by('nome')
+
+@admin.register(Comunicado)
+class ComunicadoAdmin(admin.ModelAdmin):
+    form = ComunicadoForm
+    list_display = ('titulo', 'autor', 'data_publicacao', 'publicado')
+    list_filter = ('publicado', 'autor')
+    search_fields = ('titulo', 'conteudo')
+
+    # Permite edição rápida no list view
+    list_editable = ('publicado',)
+    
+    def display_autor(self, obj):
+        if obj.autor:
+            return f"{obj.autor.nome} (Síndico)"
+        return "Não definido"
+    display_autor.short_description = "Responsável"
+    
+    def save_model(self, request, obj, form, change):
+        if not obj.autor_id:
+            obj.autor = request.user
+        super().save_model(request, obj, form, change)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "autor":
+            kwargs["queryset"] = Usuario.objects.filter(
+                tipo_usuario='sindico'
+            ).exclude(nome__isnull=True).exclude(nome__exact='').order_by('nome')
+            kwargs["empty_label"] = None  # Remove a opção vazia
+            kwargs["required"] = True  # Torna o campo obrigatório
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)

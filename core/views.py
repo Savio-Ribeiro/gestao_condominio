@@ -389,8 +389,12 @@ def perfil(request):
     return render(request, 'core/perfil.html', context)
 
 def get_user_photo_url(user):
-    if user.foto and hasattr(user.foto, 'url'):
-        return user.foto.url
+    try:
+        if user.foto and hasattr(user.foto, 'url'):
+            return user.foto.url
+    except ValueError:
+        pass  # Isso cobre erros do tipo "missing file" no Heroku
+
     return static('img/foto-perfil.png')
 
 @login_required

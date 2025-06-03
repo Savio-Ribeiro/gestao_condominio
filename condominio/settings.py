@@ -41,9 +41,9 @@ INSTALLED_APPS = [
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('dcqhe0t19'),
-    'API_KEY': config('995342985942543'),
-    'API_SECRET': config('lIuuwxWFsYsVVYBEZHuHq3k-RME'),
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
 }
 
 # CRISPY FORMS

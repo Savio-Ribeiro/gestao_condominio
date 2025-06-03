@@ -1,32 +1,203 @@
-{% extends "core/base.html" %}
 {% load static crispy_forms_tags %}
 
-{% block title %}Login{% endblock %}
+<!--{% block title %}Login{% endblock %}-->
 
 {% block content %}
-<div class="container d-flex align-items-center justify-content-center min-vh-100">
-    <div class="card shadow p-4" style="max-width: 400px; width: 100%;">
-        <div class="text-center mb-4">
-            <a href="{% url 'core:home' %}" class="h3 text-decoration-none text-dark">
-                <img src="{% static 'img/logo-realrealty.png' %}" alt="Logo" style="height: 60px; width: auto;">
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <a href="{% url 'core:home' %}">
+                <img src="{% static 'img/logo-realrealty.png' %}" alt="Logo" class="login-logo">
             </a>
-            <p class="text-muted mt-2 mb-0">Faça login para acessar o sistema</p>
+            <h2>Bem-vindo</h2>
+            <p class="login-subtitle">Acesse sua conta</p>
         </div>
 
-        <form method="post" novalidate>
+        <form method="post" class="login-form" novalidate>
             {% csrf_token %}
+            
+            <!-- Mantendo o crispy form para funcionamento correto -->
             {{ form|crispy }}
-            <div class="form-check mb-3">
-                <input type="checkbox" class="form-check-input" id="remember">
-                <label class="form-check-label" for="remember">Lembrar-me</label>
+            
+            <div class="login-options">
+                <label class="remember-me">
+                    <input type="checkbox" id="remember">
+                    <span>Lembrar-me</span>
+                </label>
+                <!--<a href="#" class="forgot-password">Esqueci minha senha</a>-->
             </div>
-            <button type="submit" class="btn btn-primary w-100">Entrar</button>
+            
+            <button type="submit" class="login-button">Entrar</button>
         </form>
 
-        <!--<div class="mt-3 text-center">
-            <a href="#">Esqueci minha senha</a><br>
-            <a href="{% url 'core:register' %}" class="text-muted">Registrar nova conta</a>
+        <!--<div class="login-footer">
+            <p>Não tem uma conta? <a href="{% url 'core:register' %}">Crie agora</a></p>
         </div>-->
     </div>
 </div>
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --primary-hover: #3a56d4;
+        --text-color: #2b2d42;
+        --light-gray: #f8f9fa;
+        --border-color: #e9ecef;
+    }
+    
+    body {
+        background-color: var(--light-gray);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+        margin: 0;
+        font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    
+    .login-container {
+        width: 100%;
+        max-width: 450px;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    .login-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        width: 100%;
+    }
+    
+    .login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .login-logo {
+        height: 70px;
+        margin-bottom: 20px;
+    }
+    
+    .login-header h2 {
+        color: var(--text-color);
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    
+    .login-subtitle {
+        color: #6c757d;
+        font-size: 14px;
+    }
+    
+    .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    /* Estilização para os campos gerados pelo crispy forms */
+    .login-form .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .login-form label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-color);
+        font-weight: 500;
+        font-size: 14px;
+    }
+    
+    .login-form input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    
+    .login-form input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        outline: none;
+    }
+    
+    .login-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: -10px;
+    }
+    
+    .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #495057;
+    }
+    
+    .remember-me input {
+        cursor: pointer;
+    }
+    
+    .forgot-password {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.2s;
+    }
+    
+    .forgot-password:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+    }
+    
+    .login-button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 10px;
+    }
+    
+    .login-button:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+    
+    .login-footer {
+        text-align: center;
+        margin-top: 20px;
+        color: #6c757d;
+        font-size: 14px;
+    }
+    
+    .login-footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+    
+    .login-footer a:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 {% endblock %}

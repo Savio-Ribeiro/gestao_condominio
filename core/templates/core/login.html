@@ -15,10 +15,7 @@
 
         <form method="post" class="login-form" novalidate>
             {% csrf_token %}
-            
-            <!-- Mantendo o crispy form para funcionamento correto -->
             {{ form|crispy }}
-            
             <div class="login-options">
                 <label class="remember-me">
                     <input type="checkbox" id="remember">
@@ -26,13 +23,8 @@
                 </label>
                 <!--<a href="#" class="forgot-password">Esqueci minha senha</a>-->
             </div>
-            
             <button type="submit" class="login-button">Entrar</button>
         </form>
-
-        <!--<div class="login-footer">
-            <p>Não tem uma conta? <a href="{% url 'core:register' %}">Crie agora</a></p>
-        </div>-->
     </div>
 </div>
 
@@ -44,7 +36,7 @@
         --light-gray: #f8f9fa;
         --border-color: #e9ecef;
     }
-    
+
     body {
         background-color: var(--light-gray);
         display: flex;
@@ -55,146 +47,145 @@
         margin: 0;
         font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     }
-    
+
     .login-container {
         width: 100%;
-        max-width: 450px;
+        max-width: 320px; /* Reduzido */
         animation: fadeIn 0.5s ease-in-out;
     }
-    
+
     .login-card {
         background: white;
         border-radius: 12px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        padding: 40px;
+        padding: 20px; /* Reduzido para diminuir a altura */
         width: 100%;
     }
-    
+
     .login-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 20px; /* Reduzido */
     }
-    
+
     .login-logo {
-        height: 70px;
-        margin-bottom: 20px;
+        height: 50px; /* Reduzido */
+        margin-bottom: 10px; /* Reduzido */
     }
-    
+
     .login-header h2 {
         color: var(--text-color);
-        font-size: 24px;
+        font-size: 20px; /* Reduzido */
         font-weight: 600;
-        margin-bottom: 8px;
+        margin-bottom: 4px;
     }
-    
+
     .login-subtitle {
         color: #6c757d;
-        font-size: 14px;
+        font-size: 13px; /* Levemente menor */
     }
-    
+
     .login-form {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 16px; /* Reduzido */
     }
-    
-    /* Estilização para os campos gerados pelo crispy forms */
+
     .login-form .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem; /* Menor margem */
     }
-    
+
     .login-form label {
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         color: var(--text-color);
         font-weight: 500;
-        font-size: 14px;
+        font-size: 13px;
     }
-    
+
     .login-form input {
         width: 100%;
-        padding: 12px 16px;
+        padding: 10px 14px; /* Reduzido */
         border: 1px solid var(--border-color);
         border-radius: 8px;
         font-size: 14px;
         transition: all 0.3s;
     }
-    
+
     .login-form input:focus {
         border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
         outline: none;
     }
-    
+
     .login-options {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-top: -10px;
+        margin-top: -8px;
     }
-    
+
     .remember-me {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 13px;
         color: #495057;
     }
-    
+
     .remember-me input {
         cursor: pointer;
     }
-    
+
     .forgot-password {
         color: var(--primary-color);
         text-decoration: none;
-        font-size: 14px;
+        font-size: 13px;
         transition: color 0.2s;
     }
-    
+
     .forgot-password:hover {
         color: var(--primary-hover);
         text-decoration: underline;
     }
-    
+
     .login-button {
         background-color: var(--primary-color);
         color: white;
         border: none;
         border-radius: 8px;
-        padding: 14px;
-        font-size: 16px;
+        padding: 12px;
+        font-size: 15px;
         font-weight: 500;
         cursor: pointer;
         transition: all 0.3s;
-        margin-top: 10px;
+        margin-top: 6px;
     }
-    
+
     .login-button:hover {
         background-color: var(--primary-hover);
         transform: translateY(-1px);
     }
-    
+
     .login-footer {
         text-align: center;
-        margin-top: 20px;
+        margin-top: 16px;
         color: #6c757d;
-        font-size: 14px;
+        font-size: 13px;
     }
-    
+
     .login-footer a {
         color: var(--primary-color);
         text-decoration: none;
         font-weight: 500;
         transition: color 0.2s;
     }
-    
+
     .login-footer a:hover {
         color: var(--primary-hover);
         text-decoration: underline;
     }
-    
+
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }

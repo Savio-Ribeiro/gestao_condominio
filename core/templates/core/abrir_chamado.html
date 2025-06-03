@@ -16,13 +16,14 @@
                         {% csrf_token %}
 
                         <div class="form-floating mb-3">
-                            {{ form.apartamento|add_class:"form-select" }}
-                            <label for="{{ form.apartamento.id_for_label }}">Apartamento/Bloco</label>
-                            {% if form.apartamento.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ form.apartamento.errors.0 }}
-                                </div>
+                            {% if form.apartamento.field.queryset.exists %}
+                                {{ form.apartamento|add_class:"form-select" }}
+                            {% else %}
+                                <select class="form-select" disabled>
+                                    <option>Nenhum apartamento cadastrado</option>
+                                </select>
                             {% endif %}
+                            <label for="{{ form.apartamento.id_for_label }}">Apartamento/Bloco</label>
                         </div>
 
                         <div class="form-floating mb-3">

@@ -33,7 +33,8 @@ urlpatterns = [
     path('comunicados/', views.lista_comunicados, name='lista_comunicados'),
     path('comunicado/<int:pk>/', views.detalhe_comunicado, name='detalhe_comunicado'),
     path('comunicado/action/', views.comunicado_action, name='comunicado_action'),
-    
+    path('chamado-<slug:nome>-<str:numero>-<slug:bloco>.html', views.detalhe_chamado_slug, name='detalhe_chamado_slug'),
+    path('sindico/chamados/', views.chamados_moradores, name='chamados_moradores'),
 ]
 
 if settings.DEBUG:

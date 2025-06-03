@@ -96,7 +96,9 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     def get_apartamentos_display(self):
         return ", ".join([
-            f"Apto {apt.numero_apartamento} (Bloco {apt.bloco or '-'})"
+            f"Apto {apt.numero_apartamento} - Bloco {apt.bloco.strip()}"
+            if apt.bloco and apt.bloco.strip()
+            else f"Apto {apt.numero_apartamento}"
             for apt in self.apartamentos.all()
         ])
     get_apartamentos_display.short_description = "Apartamentos"
@@ -114,26 +116,20 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
             except:
                 pass
 
-        # Criar apartamentos automaticamente ao salvar pela primeira vez
-        if creating and self.quantidade_apartamentos:
-            for i in range(1, self.quantidade_apartamentos + 1):
-                Apartamento.objects.get_or_create(
-                    usuario=self,
-                    numero_apartamento=str(i),
-                    defaults={'bloco': 'A'}
-                )
-
-# models.py
 class Apartamento(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='apartamentos')
+    usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.CASCADE,
+        related_name='apartamentos'
+    )
     numero_apartamento = models.CharField(max_length=10)
     bloco = models.CharField(max_length=10, blank=True, null=True)
 
     def __str__(self):
-        if self.bloco:
-            return f"Apto {self.numero_apartamento} - Bloco {self.bloco}"
+        bloco = (self.bloco or '').strip()
+        if bloco:  # só mostra bloco se não for vazio
+            return f"Apto {self.numero_apartamento} - Bloco {bloco}"
         return f"Apto {self.numero_apartamento}"
-
 
 class Chamado(models.Model):
     STATUS_CHOICES = [

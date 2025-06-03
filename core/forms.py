@@ -75,12 +75,10 @@ class ChamadoForm(forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
-        super(ChamadoForm, self).__init__(*args, **kwargs)
-        
+        super().__init__(*args, **kwargs)
         if user:
-            # Formata a exibição dos apartamentos como "Apto X - Bloco Y"
             self.fields['apartamento'].queryset = Apartamento.objects.filter(usuario=user)
-            self.fields['apartamento'].label_from_instance = lambda obj: f"Apto {obj.numero_apartamento} - Bloco {obj.bloco}"
+            self.fields['apartamento'].label_from_instance = lambda obj: str(obj)
 
 
 # Formulário para adicionar mensagens aos chamados

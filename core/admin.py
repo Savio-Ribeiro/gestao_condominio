@@ -253,6 +253,12 @@ class ChamadoAdmin(admin.ModelAdmin):
     def change_view(self, request, object_id, form_url='', extra_context=None):
         chamado = get_object_or_404(Chamado, pk=object_id)
         mensagens = chamado.mensagens.all().order_by('-data_envio')
+        for m in mensagens:
+            m.css_classe = (
+                "bg-warning-subtle border border-warning"
+                if m.usuario.tipo_usuario == "sindico" else
+                "bg-light border"
+            )
 
         if request.method == 'POST' and 'mensagem' in request.POST:
             form = MensagemChamadoForm(request.POST)

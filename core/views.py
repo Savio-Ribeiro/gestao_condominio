@@ -1,5 +1,6 @@
 # core/views.py
 from django.utils import timezone
+from django.utils.text import slugify
 from urllib import request
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -21,6 +22,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.tokens import default_token_generator
 from django.views.generic.edit import CreateView
 from django.contrib.auth.forms import UserCreationForm
+from django.db.models import Q
 
 @login_required
 def chamados_encerrados(request):
@@ -138,29 +140,43 @@ def registrar_usuario(request):
     if request.method == 'POST':
         usuario_form = UsuarioRegistrationForm(request.POST, request.FILES)
         tipo_usuario = request.POST.get('tipo_usuario', '')
-        formset_valid = True  # por padrão, assume que o formset é válido
+        formset_valid = True
 
-        # Só processa apartamentos se necessário
+        # Prepara o formset com os dados inseridos dinamicamente
         if tipo_usuario in ['proprietario', 'imobiliaria']:
-            quantidade = int(request.POST.get('quantidade_apartamentos', 0))
+            # Captura todos os campos de apartamento enviados
+            apartamentos_data = []
+            i = 1
+            while f'apartamento_numero_{i}' in request.POST:
+                numero = request.POST.get(f'apartamento_numero_{i}', '').strip()
+                bloco = request.POST.get(f'apartamento_bloco_{i}', '').strip()
+                if numero:  # Só adiciona se tiver número
+                    apartamentos_data.append({
+                        'numero_apartamento': numero,
+                        'bloco': bloco if bloco else None
+                    })
+                i += 1
+
+            # Prepara o formset com os dados capturados
             formsets_data = {
-                'form-TOTAL_FORMS': str(quantidade),
+                'form-TOTAL_FORMS': str(len(apartamentos_data)),
                 'form-INITIAL_FORMS': '0',
                 'form-MIN_NUM_FORMS': '0',
                 'form-MAX_NUM_FORMS': '1000',
             }
-            for i in range(quantidade):
-                formsets_data[f'form-{i}-numero_apartamento'] = request.POST.get(f'apartamento_numero_{i + 1}', '')
-                formsets_data[f'form-{i}-bloco'] = request.POST.get(f'apartamento_bloco_{i + 1}', '')
+            for i, apt_data in enumerate(apartamentos_data):
+                formsets_data[f'form-{i}-numero_apartamento'] = apt_data['numero_apartamento']
+                formsets_data[f'form-{i}-bloco'] = apt_data['bloco']
+            
             formset = ApartamentoFormSet(formsets_data, queryset=Apartamento.objects.none())
             formset_valid = formset.is_valid()
         else:
-            formset = ApartamentoFormSet(queryset=Apartamento.objects.none())
+            formset_valid = True  # Não precisa validar formset para outros tipos de usuário
 
         if usuario_form.is_valid() and formset_valid:
             usuario = usuario_form.save()
 
-            if usuario.tipo_usuario in ['proprietario', 'imobiliaria']:
+            if tipo_usuario in ['proprietario', 'imobiliaria']:
                 for form in formset:
                     if form.cleaned_data.get('numero_apartamento'):
                         apartamento = form.save(commit=False)
@@ -170,10 +186,9 @@ def registrar_usuario(request):
             messages.success(request, 'Usuário cadastrado com sucesso!')
             return redirect('core:registrar_usuario')
         else:
-            print("Erros no formulário de usuário:")
-            print(usuario_form.errors)
-            print("Erros no formset de apartamentos:")
-            print(formset.errors)
+            print("Erros no formulário de usuário:", usuario_form.errors)
+            if tipo_usuario in ['proprietario', 'imobiliaria']:
+                print("Erros no formset de apartamentos:", formset.errors)
             messages.error(request, 'Erro ao cadastrar. Verifique os dados.')
 
     return render(request, 'core/register.html', {
@@ -422,3 +437,69 @@ def comunicado_action(request):
             return redirect('core:dashboard')
     
     return redirect('core:dashboard')
+
+@login_required
+def chamados_moradores(request):
+    if request.user.tipo_usuario != 'sindico':
+        return HttpResponseForbidden("Acesso restrito ao síndico.")
+
+    termo = request.GET.get('termo', '')
+    chamados = Chamado.objects.select_related('usuario', 'apartamento')
+
+    if termo:
+        chamados = chamados.filter(
+            Q(usuario__nome__icontains=termo) |
+            Q(apartamento__numero_apartamento__icontains=termo) |
+            Q(apartamento__bloco__icontains=termo)
+        )
+    chamados = chamados.order_by('-data_abertura')
+
+    for chamado in chamados:
+        chamado.slug_nome = slugify(chamado.usuario.nome or "")
+        chamado.slug_bloco = slugify(chamado.apartamento.bloco or "")
+
+    return render(request, 'core/chamados_moradores.html', {
+        'chamados': chamados,
+        'termo': termo
+    })
+
+@login_required
+def detalhe_chamado_slug(request, nome, numero, bloco):
+    if request.user.tipo_usuario != 'sindico':
+        return HttpResponseForbidden("Acesso restrito ao síndico.")
+
+    chamados = Chamado.objects.select_related('usuario', 'apartamento')
+
+    for chamado in chamados:
+        if (
+            slugify(chamado.usuario.nome or "") == nome and
+            chamado.apartamento.numero_apartamento == numero and
+            slugify(chamado.apartamento.bloco or "") == bloco
+        ):
+            break
+    else:
+        raise Http404("Chamado não encontrado com os parâmetros fornecidos.")
+
+    # Formulário de resposta
+    if request.method == 'POST':
+        mensagem = request.POST.get('mensagem', '').strip()
+        if mensagem:
+            MensagemChamado.objects.create(
+                chamado=chamado,
+                usuario=request.user,
+                mensagem=mensagem,
+                is_resposta_tecnica=True
+            )
+            if chamado.status == 'F':
+                chamado.status = 'R'
+                chamado.save()
+            return redirect('core:detalhe_chamado_slug',
+                            nome=slugify(chamado.usuario.nome or ""),
+                            numero=numero,
+                            bloco=slugify(chamado.apartamento.bloco or ""))
+
+    mensagens = chamado.mensagens.all().order_by('-data_envio')
+    return render(request, 'core/detalhe_chamado.html', {
+        'chamado': chamado,
+        'mensagens': mensagens
+    })

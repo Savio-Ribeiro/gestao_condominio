@@ -1,0 +1,81 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Chamados dos Moradores{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">Chamados dos Moradores</h2>
+
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="termo" class="form-control" placeholder="Buscar por nome ou apartamento" value="{{ termo }}">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+    </form>
+
+    {% if termo %}
+        <div class="mb-3">
+            <a href="{% url 'core:chamados_moradores' %}" class="btn btn-outline-secondary btn-sm">Ver todos</a>
+        </div>
+    {% endif %}
+
+    {% if chamados %}
+        <div class="list-group rounded border shadow-sm">
+            {% for chamado in chamados %}
+                <div class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center py-3 border-bottom">
+                    <div class="d-flex flex-wrap align-items-center gap-3 flex-grow-1 chamado-info">
+                        <span class="chamado-bloco"><strong>{{ chamado.usuario.nome }}</strong></span>
+                        <span class="divider"></span>
+                        <span class="chamado-bloco">Apto {{ chamado.apartamento.numero_apartamento }}{% if chamado.apartamento.bloco %} - Bloco {{ chamado.apartamento.bloco }}{% endif %}</span>
+                        <span class="divider"></span>
+                        <span class="chamado-bloco text-muted">"{{ chamado.titulo }}"</span>
+                    </div>
+                    <a href="{% url 'core:detalhe_chamado_slug' nome=chamado.usuario.nome|slugify numero=chamado.apartamento.numero_apartamento bloco=chamado.apartamento.bloco|slugify %}" class="btn btn-sm btn-outline-primary mt-2 mt-md-0">
+                        Visualizar
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-4">Nenhum chamado encontrado.</div>
+    {% endif %}
+</div>
+
+<style>
+    .chamado-info {
+        font-size: 1rem;
+        font-weight: 500;
+        flex-wrap: wrap;
+    }
+
+    .chamado-bloco {
+        font-size: 1.05rem;
+        white-space: nowrap;
+    }
+
+    .divider {
+        width: 1px;
+        height: 18px;
+        background-color: #ced4da;
+        margin: 0 8px;
+    }
+
+    .list-group-item {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .chamado-info {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        .divider {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}

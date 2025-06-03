@@ -34,28 +34,24 @@
                     <hr>
 
                     <h5 class="mb-3">Histórico de Mensagens</h5>
-                    
-                    <div class="chat-container">
-                        {% for mensagem in mensagens %}
-                        <div class="message {% if mensagem.is_resposta_tecnica %}admin-message{% else %}user-message{% endif %}">
-                            <div class="message-header">
-                                <strong>
-                                    {% if mensagem.is_resposta_tecnica %}
-                                        Administrador: {{ mensagem.usuario.get_full_name|default:"Administrador" }}
-                                    {% else %}
-                                        Você ({{ mensagem.usuario.get_full_name }})
-                                    {% endif %}
-                                </strong>
-                                <small class="text-muted">{{ mensagem.data_envio|date:"d/m/Y H:i" }}</small>
+
+                    <div class="chat-box mt-4">
+                        {% for msg in mensagens %}
+                            <div class="mb-3 p-3 rounded 
+                                {% if msg.usuario.tipo_usuario == 'sindico' %}
+                                    bg-warning-subtle border border-warning
+                                {% else %}
+                                    bg-light border
+                                {% endif %}">
+                                <strong>{{ msg.usuario.get_full_name }}:</strong><br>
+                                {{ msg.mensagem|linebreaks }}
+                                <div class="text-muted small mt-1">{{ msg.data_envio|date:"d/m/Y H:i" }}</div>
                             </div>
-                            <div class="message-body">
-                                {{ mensagem.mensagem|linebreaks }}
-                            </div>
-                        </div>
                         {% empty %}
-                        <div class="alert alert-info">Nenhuma mensagem encontrada para este chamado.</div>
+                            <div class="alert alert-info">Nenhuma mensagem encontrada para este chamado.</div>
                         {% endfor %}
                     </div>
+
 
                     {% if chamado.status != 'F' %}
                     <form method="post" class="mt-4" id="mensagemForm">

@@ -46,7 +46,24 @@
                     </div>
                 </div>
 
-                <div id="apartamentos-container" class="mt-3"></div>
+                <div id="apartamentos-container" class="mt-3">
+                    {% for form in formset %}
+                        <div class="row g-3 align-items-end mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Apartamento {{ forloop.counter }} - Número</label>
+                                <input type="text" name="apartamento_numero_{{ forloop.counter }}" 
+                                       value="{{ form.numero_apartamento.value|default_if_none:'' }}" 
+                                       class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Apartamento {{ forloop.counter }} - Bloco (opcional)</label>
+                                <input type="text" name="apartamento_bloco_{{ forloop.counter }}" 
+                                       value="{{ form.bloco.value|default_if_none:'' }}" 
+                                       class="form-control">
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
 
                 {% for field in form %}
                     {% if field.name not in 'tipo_usuario quantidade_apartamentos numero_apartamento bloco' %}
@@ -101,7 +118,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (quantidadeInput) {
         quantidadeInput.addEventListener('input', renderApartamentos);
-        renderApartamentos();
+        // Renderiza inicialmente apenas se não houver formsets já renderizados
+        if (container.querySelectorAll('[name^="apartamento_numero_"]').length === 0) {
+            renderApartamentos();
+        }
     }
 });
 </script>

@@ -33,9 +33,23 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     'django.contrib.humanize',
     'widget_tweaks',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
+# Cloudinary
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('dcqhe0t19'),
+    'API_KEY': config('995342985942543'),
+    'API_SECRET': config('lIuuwxWFsYsVVYBEZHuHq3k-RME'),
+}
+
+# CRISPY FORMS
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+# Modelo de usuário
 AUTH_USER_MODEL = 'core.Usuario'
 
 # Autenticação
@@ -53,7 +67,7 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 # Middleware
 MIDDLEWARE = [
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve arquivos estáticos no Heroku
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -104,13 +118,13 @@ USE_I18N = True
 USE_TZ = True
 SILENCED_SYSTEM_CHECKS = ['urls.W002']
 
-# Arquivos estáticos (Heroku)
+# Arquivos estáticos
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Arquivos de mídia (usado apenas em ambiente local ou com S3/Cloudinary em produção)
+# Arquivos de mídia (em ambiente local apenas, Cloudinary é usado em produção)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

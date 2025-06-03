@@ -11,7 +11,6 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.sites.shortcuts import get_current_site
 from django.http import HttpResponse, HttpResponseForbidden
-
 from core.admin import ComunicadoForm
 from .models import Comunicado, Usuario, Chamado, MensagemChamado, Pagamento, Apartamento
 from .forms import ComunicadoDashboardForm, UsuarioRegistrationForm, LoginForm, ChamadoForm, MensagemChamadoForm, PagamentoForm
@@ -388,29 +387,13 @@ def perfil(request):
     }
     return render(request, 'core/perfil.html', context)
 
-def get_user_photo_url(user):
-    try:
-        if user.foto and hasattr(user.foto, 'url'):
-            return user.foto.url
-    except ValueError:
-        pass  # Isso cobre erros do tipo "missing file" no Heroku
-
-    return static('img/foto-perfil.png')
-
-@login_required
-def perfil(request):
-    usuario = request.user
-    context = {
-        'usuario': usuario,
-        'foto_url': get_user_photo_url(usuario)
-    }
-    return render(request, 'core/perfil.html', context)
 
 def get_user_photo_url(user):
     """Função auxiliar para obter a URL da foto do usuário com fallback"""
     if user.foto and hasattr(user.foto, 'url'):
         return user.foto.url
-    return static('images/default.jpg')
+    return static('img/uploads/default.jpg')
+
 
 def lista_comunicados(request):
     comunicados = Comunicado.objects.filter(publicado=True).order_by('-data_publicacao')

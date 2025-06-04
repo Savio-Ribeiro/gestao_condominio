@@ -56,7 +56,55 @@
                 </a>
             </div>
         </div>
-    </div>
+        <!-- Substitua o card de Pagamentos Pendentes por estes: -->
+
+        <!-- Card de Total de Despesas -->
+        <div class="col-12 col-sm-6 col-lg-4 mb-4">
+            <div class="small-box bg-danger h-100">
+                <div class="inner">
+                    <h3>R$ {{ total_despesas|floatformat:2 }}</h3>
+                    <p>Total Despesas <small class="d-block">({{ nome_mes_atual }})</small></p>
+                </div>
+                <div class="icon d-none d-md-block">
+                    <i class="fas fa-minus-circle"></i>
+                </div>
+                <a href="{% url 'core:painel_financeiro' %}" class="small-box-footer">
+                    Ver detalhes <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Card de Total de Receitas -->
+        <div class="col-12 col-sm-6 col-lg-4 mb-4">
+            <div class="small-box bg-success h-100">
+                <div class="inner">
+                    <h3>R$ {{ total_receitas|floatformat:2 }}</h3>
+                    <p>Total Receitas <small class="d-block">({{ nome_mes_atual }})</small></p>
+                </div>
+                <div class="icon d-none d-md-block">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <a href="{% url 'core:painel_financeiro' %}" class="small-box-footer">
+                    Ver detalhes <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Card de Saldo Líquido -->
+        <div class="col-12 col-sm-6 col-lg-4 mb-4">
+            <div class="small-box bg-info h-100">
+                <div class="inner">
+                    <h3>R$ {{ saldo_liquido|floatformat:2 }}</h3>
+                    <p>Saldo Líquido <small class="d-block">({{ nome_mes_atual }})</small></p>
+                </div>
+                <div class="icon d-none d-md-block">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <a href="{% url 'core:painel_financeiro' %}" class="small-box-footer">
+                    Ver detalhes <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
 
     <!-- Últimos Chamados Ativos e Comunicados Recentes em coluna única em mobile -->
     <div class="row">

@@ -26,7 +26,6 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('acompanhar_chamados/', views.acompanhar_chamados, name='acompanhar_chamados'),
     path('chamado/<int:chamado_id>/', views.detalhe_chamado, name='detalhe_chamado'),
-    path('financeiro/', views.financeiro, name='financeiro'),
     path('historico_chamados/', views.historico_chamados, name='historico_chamados'),
     path('encerrar-chamado/<int:pk>/', views.encerrar_chamado, name='encerrar_chamado'),
     path('ativar/<uidb64>/<token>/', views.activate, name='activate'),
@@ -35,6 +34,12 @@ urlpatterns = [
     path('comunicado/action/', views.comunicado_action, name='comunicado_action'),
     path('chamado-<slug:nome>-<str:numero>-<slug:bloco>.html', views.detalhe_chamado_slug, name='detalhe_chamado_slug'),
     path('sindico/chamados/', views.chamados_moradores, name='chamados_moradores'),
+    path('relatorio-despesas-receitas/', views.relatorio_despesas_receitas, name='relatorio_despesas_receitas'),
+    path('incluir-despesa/', views.incluir_despesa, name='incluir_despesa'),
+    path('incluir-receita/', views.incluir_receita, name='incluir_receita'),
+    path('detalhe-registro/<str:tipo>/<int:id>/', views.detalhe_registro, name='detalhe_registro'),   
+    path('painel-financeiro/', views.painel_financeiro, name='painel_financeiro'),
+    path('detalhe-registro/<int:id>/', views.detalhe_registro, name='detalhe_registro'),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,92 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Card de Total de Despesas -->
+        <div class="col-md-4 mb-4">
+            <div class="small-box bg-danger h-100">
+                <div class="inner">
+                    <h3>R$ {{ total_despesas|floatformat:2 }}</h3>
+                    <p>Total de Despesas</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-minus-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Total de Receitas -->
+        <div class="col-md-4 mb-4">
+            <div class="small-box bg-success h-100">
+                <div class="inner">
+                    <h3>R$ {{ total_receitas|floatformat:2 }}</h3>
+                    <p>Total de Receitas</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Saldo Líquido -->
+        <div class="col-md-4 mb-4">
+            <div class="small-box bg-info h-100">
+                <div class="inner">
+                    <h3>R$ {{ saldo_liquido|floatformat:2 }}</h3>
+                    <p>Saldo Líquido</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Registros -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Histórico de Despesas e Receitas</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Valor Total</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registro in registros %}
+                        <tr>
+                            <td>{{ registro.titulo }}</td>
+                            <td>{{ registro.data|date:"d/m/Y" }}</td>
+                            <td>
+                                <span class="badge {% if registro.tipo == 'despesa' %}bg-danger{% else %}bg-success{% endif %}">
+                                    {{ registro.tipo|title }}
+                                </span>
+                            </td>
+                            <td>R$ {{ registro.valor_total|floatformat:2 }}</td>
+                            <td>
+                                <a href="{% url 'core:detalhe_registro' registro.tipo registro.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> Detalhes
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">Nenhum registro encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

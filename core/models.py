@@ -4,6 +4,7 @@ from django.core.validators import RegexValidator
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from PIL import Image
+from django.contrib.auth import get_user_model
 
 class UsuarioManager(BaseUserManager):
     use_in_migrations = True
@@ -246,3 +247,35 @@ class Comunicado(models.Model):
 
     def get_absolute_url(self):
         return reverse('core:detalhe_comunicado', args=[str(self.id)])
+    
+#DESPESAS E RECEITAS
+
+Usuario = get_user_model()
+
+class Despesa(models.Model):
+    titulo = models.CharField(max_length=200)
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    data = models.DateField(auto_now_add=True)
+    detalhamento = models.TextField(blank=True)
+    comprovantes = models.FileField(upload_to='comprovantes_despesas/', blank=True, null=True)
+
+    def valor_total(self):
+        return sum(item.valor for item in self.itens.all())
+
+class ItemDespesa(models.Model):
+    despesa = models.ForeignKey(Despesa, on_delete=models.CASCADE, related_name='itens')
+    descricao = models.CharField(max_length=200)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+
+class Receita(models.Model):
+    titulo = models.CharField(max_length=200)
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    data = models.DateField(auto_now_add=True)
+
+    def valor_total(self):
+        return sum(item.valor for item in self.itens.all())
+
+class ItemReceita(models.Model):
+    receita = models.ForeignKey(Receita, on_delete=models.CASCADE, related_name='itens')
+    descricao = models.CharField(max_length=200)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)

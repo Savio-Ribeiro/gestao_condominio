@@ -1,11 +1,11 @@
 # core/views.py
+from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.utils.text import slugify
 from urllib import request
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -23,6 +23,17 @@ from django.contrib.auth.tokens import default_token_generator
 from django.views.generic.edit import CreateView
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Q
+from .models import Despesa, ItemDespesa, Receita, ItemReceita
+from .forms import DespesaForm, ReceitaForm
+from django.contrib import messages
+from django.db.models import Sum
+import calendar
+import csv
+import io
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from datetime import datetime
+from .models import Despesa, Receita
 
 @login_required
 def chamados_encerrados(request):
@@ -43,15 +54,35 @@ def profile_view(request):
     return render(request, 'core/profile.html')
 
 @login_required
-@login_required
 def dashboard(request):
+    total_despesas = Despesa.objects.aggregate(Sum('itens__valor'))['itens__valor__sum'] or 0
+    total_receitas = Receita.objects.aggregate(Sum('itens__valor'))['itens__valor__sum'] or 0
+    saldo_liquido = total_receitas - total_despesas
+    # Obter o mês e ano atual
+    hoje = timezone.now()
+    mes_atual = hoje.month
+    ano_atual = hoje.year
+    nome_mes_atual = _(hoje.strftime('%B'))  # Isso usará a tradução do Django
+    # Filtrar despesas e receitas pelo mês atual
+    total_despesas = Despesa.objects.filter(
+        data__month=mes_atual,
+        data__year=ano_atual
+    ).aggregate(Sum('itens__valor'))['itens__valor__sum'] or 0
+
+    total_receitas = Receita.objects.filter(
+        data__month=mes_atual,
+        data__year=ano_atual
+    ).aggregate(Sum('itens__valor'))['itens__valor__sum'] or 0
+    
+    saldo_liquido = total_receitas - total_despesas
+
     # Formulários de usuário e apartamento
     usuario_form = UsuarioRegistrationForm()
     formset = ApartamentoFormSet(queryset=Apartamento.objects.none())
 
     # Formulário de comunicado
     comunicado_form = ComunicadoDashboardForm(request.POST or None, request.FILES or None)
-    
+
     # Processamento do formulário de comunicado
     if request.method == 'POST' and 'criar_comunicado' in request.POST:
         comunicado_form = ComunicadoDashboardForm(request.POST, request.FILES)
@@ -79,6 +110,9 @@ def dashboard(request):
 
     # Primeiro nome do usuário
     primeiro_nome = request.user.nome.split()[0] if request.user.nome else "Usuário"
+
+    # Contagem de pagamentos pendentes
+    pendentes = Pagamento.objects.filter(usuario=request.user, status='P').count()
 
     # Processamento do formulário de usuário (para síndicos)
     if request.method == 'POST' and request.user.tipo_usuario == 'sindico' and 'registrar_usuario' in request.POST:
@@ -122,6 +156,11 @@ def dashboard(request):
         'ultimos_chamados_ativos': ultimos_chamados_ativos,
         'comunicados_recentes': comunicados_recentes,
         'primeiro_nome': primeiro_nome,
+        'pendentes': pendentes,
+        'total_despesas': total_despesas,
+        'total_receitas': total_receitas,
+        'saldo_liquido': saldo_liquido,
+        'nome_mes_atual': nome_mes_atual,  # Adicionando o nome do mês ao contexto
     })
 
 @login_required
@@ -350,10 +389,94 @@ def reabrir_chamado(request, pk):
         messages.success(request, 'Chamado reaberto com sucesso!')
     return redirect('core:acompanhar_chamados')
 
+#FINANCEIRO
+
 @login_required
-def financeiro(request):
-    pagamentos = Pagamento.objects.filter(usuario=request.user).order_by('-data_vencimento')
-    return render(request, 'core/financeiro.html', {'pagamentos': pagamentos})
+# Adicione esta view no views.py
+@login_required
+def painel_financeiro(request):
+    # Dados para os cards
+    total_despesas = Despesa.objects.aggregate(Sum('itens__valor'))['itens__valor__sum'] or 0
+    total_receitas = Receita.objects.aggregate(Sum('itens__valor'))['itens__valor__sum'] or 0
+    saldo_liquido = total_receitas - total_despesas
+
+    # Dados para o relatório
+    registros = []
+    for d in Despesa.objects.all():
+        registros.append({
+            'id': d.id,
+            'titulo': d.titulo,
+            'data': d.data,
+            'tipo': 'despesa',
+            'valor_total': d.valor_total()
+        })
+    
+    for r in Receita.objects.all():
+        registros.append({
+            'id': r.id,
+            'titulo': r.titulo,
+            'data': r.data,
+            'tipo': 'receita',
+            'valor_total': r.valor_total()
+        })
+
+    registros.sort(key=lambda x: x['data'], reverse=True)
+
+    return render(request, 'core/painel_financeiro.html', {
+        'total_despesas': total_despesas,
+        'total_receitas': total_receitas,
+        'saldo_liquido': saldo_liquido,
+        'registros': registros
+    })
+
+@login_required
+def exportar_pagamentos_excel(request):
+    pagamentos = Pagamento.objects.filter(usuario=request.user)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="pagamentos.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Método', 'Status', 'Data Vencimento', 'Data Pagamento', 'Valor'])
+
+    for p in pagamentos:
+        writer.writerow([
+            p.id, p.get_metodo_pagamento_display(), p.get_status_display(),
+            p.data_vencimento, p.data_pagamento, f"R$ {p.valor:.2f}"
+        ])
+
+    return response
+
+@login_required
+def exportar_pagamentos_pdf(request):
+    pagamentos = Pagamento.objects.filter(usuario=request.user)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="pagamentos.pdf"'
+
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    y = height - 50
+
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, y, "Relatório de Pagamentos")
+    y -= 30
+
+    p.setFont("Helvetica", 10)
+    for pagamento in pagamentos:
+        linha = f"ID {pagamento.id} - {pagamento.get_status_display()} - R$ {pagamento.valor:.2f} - Venc: {pagamento.data_vencimento}"
+        p.drawString(50, y, linha)
+        y -= 20
+        if y < 50:
+            p.showPage()
+            y = height - 50
+
+    p.save()
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response
 
 @login_required
 def pagar_conta(request, pk):
@@ -366,7 +489,7 @@ def pagar_conta(request, pk):
             pagamento.data_pagamento = timezone.now().date()
             pagamento.save()
             messages.success(request, 'Pagamento registrado com sucesso!')
-            return redirect('core:financeiro')
+            return redirect('core:painel_financeiro')
     else:
         form = PagamentoForm(instance=pagamento)
     return render(request, 'core/pagar_conta.html', {
@@ -503,3 +626,129 @@ def detalhe_chamado_slug(request, nome, numero, bloco):
         'chamado': chamado,
         'mensagens': mensagens
     })
+
+#VIEWS DESPESAS E RECEITAS
+
+from django.urls import reverse
+from django.utils.http import urlencode
+
+@login_required
+def relatorio_despesas_receitas(request):
+    filtro_mes = request.GET.get('mes')
+    filtro_tipo = request.GET.get('tipo')
+
+    despesas = Despesa.objects.all()
+    receitas = Receita.objects.all()
+
+    if filtro_mes:
+        despesas = despesas.filter(data__month=filtro_mes)
+        receitas = receitas.filter(data__month=filtro_mes)
+
+    registros = []
+    if filtro_tipo in [None, '', 'todos', 'despesas']:
+        for d in despesas:
+            registros.append({
+                'id': d.id,
+                'titulo': d.titulo,
+                'data': d.data,
+                'tipo': 'despesa',
+                'valor_total': d.valor_total()
+            })
+    if filtro_tipo in [None, '', 'todos', 'receitas']:
+        for r in receitas:
+            registros.append({
+                'id': r.id,
+                'titulo': r.titulo,
+                'data': r.data,
+                'tipo': 'receita',
+                'valor_total': r.valor_total()
+            })
+
+    registros.sort(key=lambda x: x['data'], reverse=True)
+
+    meses = [calendar.month_abbr[m] for m in range(1, 13)]
+    grafico_receitas = [
+        Receita.objects.filter(data__month=m).aggregate(Sum('itens__valor'))['itens__valor__sum'] or 0
+        for m in range(1, 13)
+    ]
+    grafico_despesas = [
+        Despesa.objects.filter(data__month=m).aggregate(Sum('itens__valor'))['itens__valor__sum'] or 0
+        for m in range(1, 13)
+    ]
+
+    return render(request, 'core/relatorio_de_despesas_e_receitas.html', {
+        'registros': registros,
+        'meses': meses,
+        'receitas': grafico_receitas,
+        'despesas': grafico_despesas,
+    })
+
+@login_required
+def incluir_despesa(request):
+    if request.user.tipo_usuario != 'sindico':
+        return redirect('core:dashboard')
+
+    if request.method == 'POST':
+        form = DespesaForm(request.POST, request.FILES)
+        if form.is_valid():
+            despesa = form.save(commit=False)
+            despesa.usuario = request.user
+            despesa.save()
+
+            descricoes = request.POST.getlist('item_descricao[]')
+            valores = request.POST.getlist('item_valor[]')
+
+            for desc, val in zip(descricoes, valores):
+                if desc and val:
+                    ItemDespesa.objects.create(
+                        despesa=despesa,
+                        descricao=desc,
+                        valor=val
+                    )
+
+            messages.success(request, 'Despesa registrada com sucesso!')
+        return redirect('core:relatorio_despesas_receitas')
+
+@login_required
+def incluir_receita(request):
+    if request.user.tipo_usuario != 'sindico':
+        return redirect('core:dashboard')
+
+    if request.method == 'POST':
+        form = ReceitaForm(request.POST)
+        if form.is_valid():
+            receita = form.save(commit=False)
+            receita.usuario = request.user
+            receita.save()
+
+            descricoes = request.POST.getlist('item_descricao[]')
+            valores = request.POST.getlist('item_valor[]')
+
+            for desc, val in zip(descricoes, valores):
+                if desc and val:
+                    ItemReceita.objects.create(
+                        receita=receita,
+                        descricao=desc,
+                        valor=val
+                    )
+
+            messages.success(request, 'Receita registrada com sucesso!')
+
+        # Redireciona para relatorio com filtro tipo=receitas
+        url = reverse('core:relatorio_despesas_receitas')
+        query_string = urlencode({'tipo': 'receitas'})
+        full_url = f'{url}?{query_string}'
+        return redirect(full_url)
+
+@login_required
+def detalhe_registro(request, tipo, id):
+    if tipo == 'despesa':
+        registro = get_object_or_404(Despesa, id=id)
+        return render(request, 'core/detalhe_despesa.html', {'despesa': registro})
+    elif tipo == 'receita':
+        registro = get_object_or_404(Receita, id=id)
+        return render(request, 'core/detalhe_receita.html', {'receita': registro})
+    else:
+        messages.error(request, 'Tipo de registro inválido.')
+        return redirect('core:relatorio_despesas_receitas')
+

@@ -10,6 +10,7 @@ from django import forms
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from django.db.models import Q
+from .models import Despesa, ItemDespesa, Receita, ItemReceita
 from .models import Apartamento, Usuario, Chamado, Pagamento, ClienteProxy, AdministradorProxy
 
 # Desregistrar o modelo padrão se já estiver registrado
@@ -350,3 +351,36 @@ class ComunicadoAdmin(admin.ModelAdmin):
             kwargs["empty_label"] = None  # Remove a opção vazia
             kwargs["required"] = True  # Torna o campo obrigatório
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
+#DESPESAS E RECEITAS
+
+class ItemDespesaInline(admin.TabularInline):
+    model = ItemDespesa
+    extra = 1
+
+class DespesaAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'usuario', 'data', 'valor_total_display')
+    search_fields = ('titulo', 'usuario__nome')
+    list_filter = ('data',)
+    inlines = [ItemDespesaInline]
+
+    def valor_total_display(self, obj):
+        return f'R$ {obj.valor_total():.2f}'
+    valor_total_display.short_description = 'Valor Total'
+
+class ItemReceitaInline(admin.TabularInline):
+    model = ItemReceita
+    extra = 1
+
+class ReceitaAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'usuario', 'data', 'valor_total_display')
+    search_fields = ('titulo', 'usuario__nome')
+    list_filter = ('data',)
+    inlines = [ItemReceitaInline]
+
+    def valor_total_display(self, obj):
+        return f'R$ {obj.valor_total():.2f}'
+    valor_total_display.short_description = 'Valor Total'
+
+admin.site.register(Despesa, DespesaAdmin)
+admin.site.register(Receita, ReceitaAdmin)

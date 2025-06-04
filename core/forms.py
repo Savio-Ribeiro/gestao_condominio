@@ -1,6 +1,7 @@
 # core/forms.py
 
 from django import forms
+from .models import Despesa, ItemDespesa, Receita, ItemReceita
 from django.forms import modelformset_factory
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
@@ -146,3 +147,18 @@ class ComunicadoDashboardForm(forms.ModelForm):
         labels = {
             'imagem': 'Imagem (Opcional)'
         }
+
+#FORMULÁRIO DE DESPESAS E RECEITAS
+
+class DespesaForm(forms.ModelForm):
+    class Meta:
+        model = Despesa
+        fields = ['titulo', 'comprovantes', 'detalhamento']
+        widgets = {
+            'detalhamento': forms.Textarea(attrs={'rows': 3})
+        }
+
+class ReceitaForm(forms.ModelForm):
+    class Meta:
+        model = Receita
+        fields = ['titulo']

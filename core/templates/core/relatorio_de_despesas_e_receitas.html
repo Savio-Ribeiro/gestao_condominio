@@ -1,0 +1,245 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-4">
+        <h2>Relatório de Despesas e Receitas</h2>
+    </div>
+
+    {% if request.user.tipo_usuario == 'sindico' %}
+    <div class="d-flex justify-content-center gap-3 mb-4">
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDespesa">
+            <i class="fas fa-minus-circle"></i> Incluir Despesa
+        </button>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalReceita">
+            <i class="fas fa-plus-circle"></i> Incluir Receita
+        </button>
+    </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <label for="filtroMes" class="form-label">Filtrar por mês:</label>
+            <select id="filtroMes" class="form-select">
+                <!-- opções de meses -->
+                <option value="">Todos</option>
+                <option value="1">Janeiro</option>
+                <option value="2">Fevereiro</option>
+                <option value="3">Março</option>
+                <!-- ... -->
+                <option value="12">Dezembro</option>
+            </select>
+        </div>
+        <div>
+            <label for="filtroTipo" class="form-label">Exibir:</label>
+            <select id="filtroTipo" class="form-select">
+                <option value="todos">Todas</option>
+                <option value="despesas">Despesas</option>
+                <option value="receitas">Receitas</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-responsive mb-5">
+        <table class="table table-striped table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Título</th>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Total (R$)</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-registros">
+                {% for item in registros %}
+                <tr>
+                    <td>{{ item.titulo }}</td>
+                    <td>{{ item.data|date:"d/m/Y" }}</td>
+                    <td>
+                        <span class="badge {% if item.tipo == 'despesa' %}bg-danger{% else %}bg-success{% endif %}">
+                            {{ item.tipo|title }}
+                        </span>
+                    </td>
+                    <td>R$ {{ item.valor_total|floatformat:2 }}</td>
+                    <td>
+                        <a href="{% url 'core:detalhe_registro' item.tipo item.id %}" class="btn btn-sm {% if item.tipo == 'despesa' %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                            <i class="fas fa-eye"></i> Conferir
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">Nenhum registro encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="card p-4 shadow-sm">
+        <h5 class="mb-3 text-center">Resumo Financeiro Mensal</h5>
+        <canvas id="graficoFinanceiro" height="100"></canvas>
+    </div>
+</div>
+
+<!-- Modal Despesa -->
+<div class="modal fade" id="modalDespesa" tabindex="-1" aria-labelledby="modalDespesaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="post" enctype="multipart/form-data" action="{% url 'core:incluir_despesa' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDespesaLabel">Nova Despesa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="titulo" class="form-label">Título da Despesa</label>
+                        <input type="text" name="titulo" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comprovantes" class="form-label">Recibos e Notas</label>
+                        <input type="file" name="comprovantes" class="form-control" multiple>
+                    </div>
+                    <div id="itensDespesa">
+                        <label class="form-label">Itens da Despesa</label>
+                        <div class="row g-2 mb-2 item-despesa">
+                            <div class="col-8">
+                                <input type="text" name="item_descricao[]" class="form-control" placeholder="Ex: Compra de tinta">
+                            </div>
+                            <div class="col-4">
+                                <input type="number" step="0.01" name="item_valor[]" class="form-control" placeholder="Valor (R$)">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="adicionarItem()">
+                        <i class="fas fa-plus"></i> Adicionar Item
+                    </button>
+                    <div class="mt-3">
+                        <label for="detalhamento" class="form-label">Detalhamento da Despesa</label>
+                        <textarea name="detalhamento" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Salvar Despesa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Receita (estrutura semelhante, adaptada) -->
+<div class="modal fade" id="modalReceita" tabindex="-1" aria-labelledby="modalReceitaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="post" enctype="multipart/form-data" action="{% url 'core:incluir_receita' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalReceitaLabel">Nova Receita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="titulo" class="form-label">Título da Receita</label>
+                        <input type="text" name="titulo" class="form-control" required>
+                    </div>
+                    <div id="itensReceita">
+                        <label class="form-label">Itens da Receita</label>
+                        <div class="row g-2 mb-2 item-receita">
+                            <div class="col-8">
+                                <input type="text" name="item_descricao[]" class="form-control" placeholder="Ex: Aluguel do salão">
+                            </div>
+                            <div class="col-4">
+                                <input type="number" step="0.01" name="item_valor[]" class="form-control" placeholder="Valor (R$)">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="adicionarItemReceita()">
+                        <i class="fas fa-plus"></i> Adicionar Item
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Salvar Receita</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JS para adicionar campos -->
+<script>
+    function adicionarItem() {
+        const container = document.getElementById("itensDespesa");
+        const novo = container.querySelector(".item-despesa").cloneNode(true);
+        novo.querySelectorAll("input").forEach(input => input.value = '');
+        container.appendChild(novo);
+    }
+
+    function adicionarItemReceita() {
+        const container = document.getElementById("itensReceita");
+        const novo = container.querySelector(".item-receita").cloneNode(true);
+        novo.querySelectorAll("input").forEach(input => input.value = '');
+        container.appendChild(novo);
+    }
+</script>
+
+<!-- Chart.js para gráfico -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Adicione antes do script para injetar os dados JSON com segurança -->
+{{ meses|json_script:"meses-data" }}
+{{ receitas|json_script:"receitas-data" }}
+{{ despesas|json_script:"despesas-data" }}
+
+<script>
+    const ctx = document.getElementById('graficoFinanceiro');
+
+    const grafico = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: JSON.parse(document.getElementById('meses-data').textContent),
+            datasets: [
+                {
+                    label: 'Receitas',
+                    data: JSON.parse(document.getElementById('receitas-data').textContent),
+                    backgroundColor: 'rgba(25, 135, 84, 0.6)',
+                    borderColor: 'rgba(25, 135, 84, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Despesas',
+                    data: JSON.parse(document.getElementById('despesas-data').textContent),
+                    backgroundColor: 'rgba(220, 53, 69, 0.6)',
+                    borderColor: 'rgba(220, 53, 69, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + value.toFixed(2).replace('.', ',');
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: R$ ${context.raw.toFixed(2).replace('.', ',')}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}

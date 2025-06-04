@@ -14,6 +14,13 @@ os.makedirs(LOG_DIR, exist_ok=True)
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://192.168.*.*:8000',  # se acessar por IP de rede local
+    'https://gestao-de-condominio-2444982d0f4b.herokuapp.com',  # seu Heroku
+]
+
 ALLOWED_HOSTS = [
     'gestao-de-condominio-2444982d0f4b.herokuapp.com',
     'localhost',

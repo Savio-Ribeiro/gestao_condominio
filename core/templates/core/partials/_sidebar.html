@@ -2,16 +2,15 @@
 {% load static %}
 {% if user.is_authenticated %}
 <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-    <!-- Botão para exibir/ocultar sidebar no mobile -->
     <button class="btn btn-outline-secondary ms-3" data-widget="pushmenu" type="button">
-    <i class="fas fa-bars"></i>
+        <i class="fas fa-bars"></i>
     </button>
 
     <ul class="navbar-nav ml-auto d-flex align-items-center">
         <li class="nav-item d-flex align-items-center mr-3">
             <span class="mr-2">Bem-vindo, {{ primeiro_nome }}</span>
-            <img src="{% if foto_url %}{{ user.foto.url }}{% else %}{% static 'img/foto-perfil.png' %}{% endif %}" alt="Foto do usuário"
-                 alt="Avatar"
+            <img src="{{ foto_url }}" 
+                 alt="Foto do usuário"
                  class="img-size-32 img-circle"
                  style="object-fit: cover; width:32px; height:32px;">
         </li>
@@ -21,6 +20,5 @@
             </a>
         </li>
     </ul>
-
 </nav>
 {% endif %}

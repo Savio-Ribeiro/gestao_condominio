@@ -5,7 +5,7 @@ from .models import Despesa, ItemDespesa, Receita, ItemReceita
 from django.forms import modelformset_factory
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from .models import Comunicado, Usuario, Apartamento, Chamado, MensagemChamado, Pagamento
+from .models import Comunicado, Usuario, Apartamento, Chamado, MensagemChamado, Pagamento, Votacao
 
 
 # Formulário usado no admin para criar/editar usuários com campo extra
@@ -162,3 +162,18 @@ class ReceitaForm(forms.ModelForm):
     class Meta:
         model = Receita
         fields = ['titulo']
+
+class VotacaoForm(forms.ModelForm):
+    class Meta:
+        model = Votacao
+        fields = ['titulo', 'descricao', 'data_inicio', 'data_limite', 'tipo', 'link_reuniao']
+        widgets = {
+            'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Título da votação'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Explique o tema da votação...'}),
+            'data_inicio': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'data_limite': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'link_reuniao': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://meet.google.com/...'}),
+        }
+
+

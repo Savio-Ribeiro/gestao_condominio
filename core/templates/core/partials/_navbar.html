@@ -41,6 +41,29 @@
                     </a>
                 </li>
 
+                <!-- 🗳️ VOTAÇÕES -->
+                <li class="nav-header">VOTAÇÕES</li>
+
+                <li class="nav-item">
+                    <a href="{% url 'core:lista_votacoes' %}" class="nav-link">
+                        <i class="nav-icon fas fa-vote-yea text-purple"></i>
+                        <p>Votações</p>
+                    </a>
+                </li>
+                {% if request.user.tipo_usuario == 'sindico' and votacao.criado_por == request.user %}
+                    <a href="{% url 'core:editar_votacao' votacao.pk %}" class="btn btn-outline-secondary btn-sm mt-3">
+                        ✏️ Editar Votação
+                    </a>
+                {% endif %}
+                {% if user.tipo_usuario == 'sindico' %}
+                <li class="nav-item">
+                    <a href="{% url 'core:criar_votacao' %}" class="nav-link">
+                        <i class="nav-icon fas fa-plus-circle text-purple"></i>
+                        <p>Criar Nova Votação</p>
+                    </a>
+                </li>
+                {% endif %}
+
                 <!-- 🛠️ CHAMADOS -->
                 <li class="nav-header">CHAMADOS</li>
                 <li class="nav-item has-treeview menu-open">

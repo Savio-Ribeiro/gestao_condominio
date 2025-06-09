@@ -40,6 +40,14 @@ urlpatterns = [
     path('detalhe-registro/<str:tipo>/<int:id>/', views.detalhe_registro, name='detalhe_registro'),   
     path('painel-financeiro/', views.painel_financeiro, name='painel_financeiro'),
     path('detalhe-registro/<int:id>/', views.detalhe_registro, name='detalhe_registro'),
+
+    #votação
+    path('sindico/votacoes/criar/', views.criar_votacao, name='criar_votacao'),
+    path('votacoes/', views.lista_votacoes, name='lista_votacoes'),
+    path('reuniao/<int:pk>/', views.sala_de_reuniao, name='sala_de_reuniao'),
+    path('votacao/<int:pk>/votar/', views.votar, name='votar'),
+    path('votacao/<int:pk>/editar/', views.editar_votacao, name='editar_votacao'),
+
 ]
 
 if settings.DEBUG:

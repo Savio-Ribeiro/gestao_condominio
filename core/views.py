@@ -13,8 +13,8 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.sites.shortcuts import get_current_site
 from django.http import HttpResponse, HttpResponseForbidden
 from core.admin import ComunicadoForm
-from .models import Comunicado, Usuario, Chamado, MensagemChamado, Pagamento, Apartamento
-from .forms import ComunicadoDashboardForm, UsuarioRegistrationForm, LoginForm, ChamadoForm, MensagemChamadoForm, PagamentoForm
+from .models import Comunicado, Usuario, Chamado, MensagemChamado, Pagamento, Apartamento, Votacao, Voto
+from .forms import ComunicadoDashboardForm, UsuarioRegistrationForm, LoginForm, ChamadoForm, MensagemChamadoForm, PagamentoForm, VotacaoForm
 import uuid
 from django.templatetags.static import static
 from .forms import UsuarioForm, ApartamentoFormSet
@@ -34,6 +34,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from datetime import datetime
 from .models import Despesa, Receita
+from .models import Votacao, Voto
 
 @login_required
 def chamados_encerrados(request):
@@ -527,11 +528,9 @@ def perfil(request):
 
 
 def get_user_photo_url(user):
-    """Função auxiliar para obter a URL da foto do usuário com fallback"""
     if user.foto and hasattr(user.foto, 'url'):
         return user.foto.url
-    return static('img/uploads/default.jpg')
-
+    return static('img/foto-perfil.png')
 
 def lista_comunicados(request):
     comunicados = Comunicado.objects.filter(publicado=True).order_by('-data_publicacao')
@@ -751,4 +750,96 @@ def detalhe_registro(request, tipo, id):
     else:
         messages.error(request, 'Tipo de registro inválido.')
         return redirect('core:relatorio_despesas_receitas')
+
+@login_required
+def criar_votacao(request):
+    if request.user.tipo_usuario != 'sindico':
+        raise PermissionDenied()
+
+    form = VotacaoForm(request.POST or None)
+    if form.is_valid():
+        votacao = form.save(commit=False)
+        votacao.criado_por = request.user
+        votacao.save()
+        messages.success(request, 'Votação criada com sucesso!')
+        return redirect('core:lista_votacoes')
+    
+    return render(request, 'core/criar_votacao.html', {'form': form})
+
+
+@login_required
+def lista_votacoes(request):
+    votacoes = Votacao.objects.filter(data_limite__gte=timezone.now()).order_by('-data_inicio')
+    return render(request, 'core/lista_votacoes.html', {'votacoes': votacoes})
+
+
+@login_required
+@login_required
+def sala_de_reuniao(request, pk):
+    votacao = get_object_or_404(Votacao, pk=pk)
+
+    if request.method == 'POST' and not votacao.encerrada():
+        voto_valor = request.POST.get('voto')
+        Voto.objects.update_or_create(
+            votacao=votacao,
+            usuario=request.user,
+            defaults={'voto': voto_valor}
+        )
+        return redirect('core:sala_de_reuniao', pk=votacao.pk)
+
+
+    votos = votacao.votos.all()
+    favor = votos.filter(voto='a_favor').count()
+    contra = votos.filter(voto='contra').count()
+    ja_votou = votos.filter(usuario=request.user).first()
+
+    return render(request, 'core/sala_de_reuniao.html', {
+        'votacao': votacao,
+        'favor': favor,
+        'contra': contra,
+        'ja_votou': ja_votou,
+    })
+
+@login_required
+def votar(request, pk):
+    votacao = get_object_or_404(Votacao, pk=pk)
+    if votacao.encerrada():
+        messages.error(request, 'A votação já foi encerrada.')
+        return redirect('core:detalhe_votacao', pk=pk)
+
+    voto_valor = request.POST.get('voto')
+    if voto_valor in ['a_favor', 'contra']:
+        Voto.objects.update_or_create(
+            votacao=votacao,
+            usuario=request.user,
+            defaults={'voto': voto_valor}
+        )
+        messages.success(request, 'Seu voto foi registrado!')
+    return redirect('core:detalhe_votacao', pk=pk)
+
+@login_required
+def relatorio_votacao(request, pk):
+    if request.user.tipo_usuario != 'sindico':
+        raise PermissionDenied()
+    votacao = get_object_or_404(Votacao, pk=pk)
+    votos = votacao.votos.select_related('usuario')
+    return render(request, 'core/relatorio_votacao.html', {'votos': votos})
+
+@login_required
+def editar_votacao(request, pk):
+    votacao = get_object_or_404(Votacao, pk=pk, criado_por=request.user)
+
+    if request.user.tipo_usuario != 'sindico':
+        raise PermissionDenied()
+
+    if request.method == 'POST':
+        form = VotacaoForm(request.POST, instance=votacao)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Votação atualizada com sucesso!')
+            return redirect('core:sala_de_reuniao', pk=votacao.pk)
+    else:
+        form = VotacaoForm(instance=votacao)
+
+    return render(request, 'core/editar_votacao.html', {'form': form, 'votacao': votacao})
 

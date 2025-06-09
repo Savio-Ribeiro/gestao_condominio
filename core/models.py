@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.core.validators import RegexValidator
@@ -86,7 +87,11 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         return self.get_full_name()
 
     def get_full_name(self):
-        return self.nome or self.email.split('@')[0] if self.email else self.cpf
+        if self.nome:
+            return self.nome
+        elif self.email:
+            return self.email.split('@')[0]
+        return self.cpf
 
     def get_short_name(self):
         return self.get_full_name()
@@ -279,3 +284,31 @@ class ItemReceita(models.Model):
     receita = models.ForeignKey(Receita, on_delete=models.CASCADE, related_name='itens')
     descricao = models.CharField(max_length=200)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
+
+class Votacao(models.Model):
+    TIPO_CHOICES = [
+        ('individual', 'Cada um vota no seu painel'),
+        ('online', 'Reunião Online'),
+    ]
+    titulo = models.CharField(max_length=200)
+    descricao = models.TextField()
+    data_inicio = models.DateTimeField()
+    data_limite = models.DateTimeField()
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='individual')
+    link_reuniao = models.URLField(blank=True, null=True)
+    criado_por = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+
+    def encerrada(self):
+        return timezone.now() > self.data_limite
+
+class Voto(models.Model):
+    VOTO_CHOICES = [
+        ('a_favor', 'A Favor'),
+        ('contra', 'Contra'),
+    ]
+    votacao = models.ForeignKey(Votacao, on_delete=models.CASCADE, related_name='votos')
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    voto = models.CharField(max_length=10, choices=VOTO_CHOICES)
+
+    class Meta:
+        unique_together = ('votacao', 'usuario')  # Impede voto duplicado

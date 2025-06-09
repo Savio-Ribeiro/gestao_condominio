@@ -1,0 +1,153 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">{{ votacao.titulo }}</h2>
+
+    <div class="mb-4 text-center">
+        <p><strong>Descrição:</strong> {{ votacao.descricao }}</p>
+        <p><strong>Data de início:</strong> {{ votacao.data_inicio|date:"d/m/Y H:i" }}</p>
+        <p><strong>Data limite:</strong> {{ votacao.data_limite|date:"d/m/Y H:i" }}</p>
+    </div>
+
+    {% if votacao.link_reuniao %}
+        <div class="text-center mb-5">
+            <a href="{{ votacao.link_reuniao }}" target="_blank" class="btn btn-primary">
+                🔗 Entrar na Reunião
+            </a>
+        </div>
+    {% endif %}
+
+    {% if ja_votou == None and not votacao.encerrada %}
+        <form id="formVoto" method="post" class="mb-4 text-center">
+            {% csrf_token %}
+            <input type="hidden" name="voto" id="campoVoto">
+            <button type="button" class="btn btn-success me-2" onclick="confirmarVoto('a_favor')">
+                👍 Votar a Favor
+            </button>
+            <button type="button" class="btn btn-danger" onclick="confirmarVoto('contra')">
+                👎 Votar Contra
+            </button>
+        </form>
+    {% elif ja_votou %}
+        <p class="alert alert-info text-center mt-4">Você já votou: <strong>{{ ja_votou.get_voto_display }}</strong></p>
+    {% endif %}
+
+    {% if request.user.tipo_usuario == 'sindico' and votacao.criado_por == request.user %}
+        <div class="text-center">
+            <button class="btn btn-outline-secondary btn-sm mt-3" data-bs-toggle="modal" data-bs-target="#modalEditarVotacao">
+                ✏️ Editar Votação
+            </button>
+        </div>
+    {% endif %}
+
+    <!-- MODAL DE EDIÇÃO DE VOTAÇÃO -->
+    <div class="modal fade" id="modalEditarVotacao" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <form method="POST" action="{% url 'core:editar_votacao' votacao.pk %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Votação</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger">{{ field.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- FIM DO MODAL -->
+
+    <h4 class="mt-5 text-center">Resultado Atual</h4>
+    <div class="d-flex justify-content-center">
+        <div style="max-width: 500px; width: 100%;">
+            <canvas id="graficoVotacao" style="max-height: 300px;"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script id="dadosGrafico" type="application/json">
+        {
+            "favor": {{ favor|default:0 }},
+            "contra": {{ contra|default:0 }}
+        }
+    </script>
+
+    <script>
+        const dados = JSON.parse(document.getElementById("dadosGrafico").textContent);
+        const ctx = document.getElementById('graficoVotacao').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['A Favor', 'Contra'],
+                datasets: [{
+                    label: 'Votos',
+                    data: [dados.favor, dados.contra],
+                    backgroundColor: ['#00A859', '#ff4c4c'],
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>
+
+    <!-- Modal de Confirmação de Voto -->
+    <div class="modal fade" id="modalConfirmacao" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Voto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="mensagemModal"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="enviarVoto()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function confirmarVoto(valor) {
+            const titulo = "{{ votacao.titulo|escapejs }}";
+            const mensagem = valor === 'a_favor'
+                ? `Você votou <strong>a favor</strong> da votação "<strong>${titulo}</strong>". Deseja confirmar?`
+                : `Você votou <strong>contra</strong> a votação "<strong>${titulo}</strong>". Deseja confirmar?`;
+
+            document.getElementById("mensagemModal").innerHTML = mensagem;
+            document.getElementById("campoVoto").value = valor;
+            new bootstrap.Modal(document.getElementById('modalConfirmacao')).show();
+        }
+
+        function enviarVoto() {
+            document.getElementById("formVoto").submit();
+        }
+    </script>
+</div>
+{% endblock %}

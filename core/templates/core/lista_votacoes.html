@@ -1,0 +1,26 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Votações Abertas</h2>
+    <ul class="list-group">
+        {% for votacao in votacoes %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ votacao.titulo }}</strong><br>
+                    {{ votacao.descricao|truncatewords:20 }}
+                </div>
+                <a href="{% url 'core:sala_de_reuniao' votacao.pk %}" class="btn btn-primary btn-sm">Detalhes</a>
+                {% if user.tipo_usuario == 'sindico' and votacao.criado_por == user %}
+                <a href="{% url 'core:editar_votacao' votacao.pk %}" class="btn btn-warning btn-sm ms-2">
+                    ✏️ Editar Reunião
+                </a>
+            {% endif %}
+            </li>
+        {% empty %}
+            <li class="list-group-item">Nenhuma votação disponível no momento.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

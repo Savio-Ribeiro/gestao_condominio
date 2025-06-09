@@ -384,3 +384,18 @@ class ReceitaAdmin(admin.ModelAdmin):
 
 admin.site.register(Despesa, DespesaAdmin)
 admin.site.register(Receita, ReceitaAdmin)
+
+from .models import Votacao, Voto
+
+class VotoInline(admin.TabularInline):
+    model = Voto
+    extra = 0
+    readonly_fields = ('usuario', 'voto')
+    can_delete = False
+
+@admin.register(Votacao)
+class VotacaoAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'data_inicio', 'data_limite', 'criado_por')
+    inlines = [VotoInline]
+    search_fields = ('titulo', 'descricao')
+    list_filter = ('data_inicio', 'data_limite')

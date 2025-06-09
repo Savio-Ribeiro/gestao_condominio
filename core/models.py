@@ -298,8 +298,17 @@ class Votacao(models.Model):
     link_reuniao = models.URLField(blank=True, null=True)
     criado_por = models.ForeignKey(Usuario, on_delete=models.CASCADE)
 
+    data_limite = models.DateTimeField()
+    encerrada_manualmente = models.BooleanField(default=False)
+
     def encerrada(self):
         return timezone.now() > self.data_limite
+    
+    encerrada_manualmente = models.BooleanField(default=False)
+
+    def encerrada(self):
+        from django.utils import timezone
+        return timezone.now() > self.data_limite or self.encerrada_manualmente
 
 class Voto(models.Model):
     VOTO_CHOICES = [

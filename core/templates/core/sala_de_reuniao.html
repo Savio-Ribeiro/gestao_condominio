@@ -2,10 +2,10 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4 text-center">{{ votacao.titulo }}</h2>
+<div class="container mt-5 text-start">
+    <h2 class="mb-4">{{ votacao.titulo }}</h2>
 
-    <div class="mb-4 text-center">
+    <div class="mb-4">
         <p><strong>Descrição:</strong> {{ votacao.descricao }}</p>
         <p><strong>Data de início:</strong> {{ votacao.data_inicio|date:"d/m/Y H:i" }}</p>
         <p><strong>Data limite:</strong> {{ votacao.data_limite|date:"d/m/Y H:i" }}</p>
@@ -30,9 +30,21 @@
                 👎 Votar Contra
             </button>
         </form>
-    {% elif ja_votou %}
-        <p class="alert alert-info text-center mt-4">Você já votou: <strong>{{ ja_votou.get_voto_display }}</strong></p>
+        {% elif ja_votou and not votacao.encerrada %}
+        <div class="mt-4">
+            <p class="alert alert-info">Você votou: <strong>{{ ja_votou.get_voto_display }}</strong></p>
+            <button class="btn btn-warning" onclick="document.getElementById('formVoto').classList.remove('d-none'); this.style.display='none';">
+                🔁 Alterar meu voto
+            </button>
+        </div>
+        <form id="formVoto" method="post" class="mb-4 d-none">
+            {% csrf_token %}
+            <input type="hidden" name="voto" id="campoVoto">
+            <button type="button" class="btn btn-success me-2" onclick="confirmarVoto('a_favor')">👍 Votar a Favor</button>
+            <button type="button" class="btn btn-danger" onclick="confirmarVoto('contra')">👎 Votar Contra</button>
+        </form>
     {% endif %}
+
 
     {% if request.user.tipo_usuario == 'sindico' and votacao.criado_por == request.user %}
         <div class="text-center">
@@ -73,12 +85,37 @@
     </div>
     <!-- FIM DO MODAL -->
 
-    <h4 class="mt-5 text-center">Resultado Atual</h4>
+    <h4 class="mt-5">Resultado Atual</h4>
     <div class="d-flex justify-content-center">
         <div style="max-width: 500px; width: 100%;">
             <canvas id="graficoVotacao" style="max-height: 300px;"></canvas>
         </div>
     </div>
+
+    {% if request.user.tipo_usuario == 'sindico' and votacao.criado_por == request.user %}
+    <h5 class="mt-5">Participantes que já votaram:</h5>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Apartamento</th>
+                <th>Bloco</th>
+                <th>Voto</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for voto in votos %}
+                <tr>
+                    <td>{{ voto.usuario.nome }}</td>
+                    <td>{{ voto.usuario.apartamentos.first.numero_apartamento }}</td>
+                    <td>{{ voto.usuario.apartamentos.first.bloco }}</td>
+                    <td>{{ voto.get_voto_display }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -132,6 +169,15 @@
             </div>
         </div>
     </div>
+    {% if request.user.tipo_usuario == 'sindico' and votacao.criado_por == request.user and not votacao.encerrada %}
+    <form method="post" action="{% url 'core:encerrar_votacao' votacao.pk %}" class="d-inline-block mt-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-sm">
+            ⛔ Encerrar Votação
+        </button>
+    </form>
+{% endif %}
+
 
     <script>
         function confirmarVoto(valor) {

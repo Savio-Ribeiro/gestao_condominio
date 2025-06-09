@@ -1,0 +1,21 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Votações Encerradas</h2>
+    <ul class="list-group">
+        {% for votacao in votacoes %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ votacao.titulo }}</strong><br>
+                    Encerrada em: {{ votacao.data_limite|date:"d/m/Y H:i" }}
+                </div>
+                <a href="{% url 'core:sala_de_reuniao' votacao.pk %}" class="btn btn-outline-secondary btn-sm">
+                    Ver Detalhes
+                </a>
+            </li>
+        {% empty %}
+            <li class="list-group-item">Nenhuma votação encerrada.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

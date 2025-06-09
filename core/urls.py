@@ -47,6 +47,8 @@ urlpatterns = [
     path('reuniao/<int:pk>/', views.sala_de_reuniao, name='sala_de_reuniao'),
     path('votacao/<int:pk>/votar/', views.votar, name='votar'),
     path('votacao/<int:pk>/editar/', views.editar_votacao, name='editar_votacao'),
+    path('votacoes_encerradas/', views.votacoes_encerradas, name='votacoes_encerradas'),
+    path('votacao/<int:pk>/encerrar/', views.encerrar_votacao, name='encerrar_votacao'),
 
 ]
 

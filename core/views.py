@@ -1,4 +1,5 @@
 # core/views.py
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.utils.text import slugify
@@ -769,35 +770,43 @@ def criar_votacao(request):
 
 @login_required
 def lista_votacoes(request):
-    votacoes = Votacao.objects.filter(data_limite__gte=timezone.now()).order_by('-data_inicio')
+    votacoes = Votacao.objects.filter(
+        models.Q(data_limite__gte=timezone.now()),
+        encerrada_manualmente=False
+    ).order_by('data_limite')
     return render(request, 'core/lista_votacoes.html', {'votacoes': votacoes})
 
-
-@login_required
 @login_required
 def sala_de_reuniao(request, pk):
     votacao = get_object_or_404(Votacao, pk=pk)
 
+    # Se for POST e ainda estiver no prazo da votação, registra ou atualiza o voto
     if request.method == 'POST' and not votacao.encerrada():
         voto_valor = request.POST.get('voto')
-        Voto.objects.update_or_create(
-            votacao=votacao,
-            usuario=request.user,
-            defaults={'voto': voto_valor}
-        )
+        if voto_valor in ['a_favor', 'contra']:
+            Voto.objects.update_or_create(
+                votacao=votacao,
+                usuario=request.user,
+                defaults={'voto': voto_valor}
+            )
         return redirect('core:sala_de_reuniao', pk=votacao.pk)
 
-
-    votos = votacao.votos.all()
+    # Recupera todos os votos e estatísticas
+    votos = votacao.votos.select_related('usuario').all()
     favor = votos.filter(voto='a_favor').count()
     contra = votos.filter(voto='contra').count()
     ja_votou = votos.filter(usuario=request.user).first()
+
+    # Formulário pré-preenchido para o modal de edição da votação
+    form = VotacaoForm(instance=votacao)
 
     return render(request, 'core/sala_de_reuniao.html', {
         'votacao': votacao,
         'favor': favor,
         'contra': contra,
         'ja_votou': ja_votou,
+        'form': form,
+        'votos': votos  # Opcional: para o síndico ver quem votou
     })
 
 @login_required
@@ -843,3 +852,22 @@ def editar_votacao(request, pk):
 
     return render(request, 'core/editar_votacao.html', {'form': form, 'votacao': votacao})
 
+def votacoes_encerradas(request):
+    votacoes = Votacao.objects.filter(
+        models.Q(data_limite__lt=timezone.now()) | models.Q(encerrada_manualmente=True)
+    ).order_by('-data_limite')
+    return render(request, 'core/votacoes_encerradas.html', {'votacoes': votacoes})
+
+@login_required
+def encerrar_votacao(request, pk):
+    votacao = get_object_or_404(Votacao, pk=pk, criado_por=request.user)
+
+    if request.user.tipo_usuario != 'sindico':
+        messages.error(request, "Apenas o síndico pode encerrar a votação.")
+        return redirect('core:sala_de_reuniao', pk=pk)
+
+    votacao.encerrada_manualmente = True
+    votacao.save()
+
+    messages.success(request, "Votação encerrada com sucesso.")
+    return redirect('core:votacoes_encerradas')

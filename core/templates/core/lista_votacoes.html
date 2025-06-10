@@ -1,4 +1,4 @@
-{% extends 'core/base.html' %}
+{% extends 'core/base.html' %} 
 {% load static %}
 
 {% block content %}
@@ -6,17 +6,21 @@
     <h2>Votações Abertas</h2>
     <ul class="list-group">
         {% for votacao in votacoes %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>{{ votacao.titulo }}</strong><br>
-                    {{ votacao.descricao|truncatewords:20 }}
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1 me-3">
+                        <strong>{{ votacao.titulo }}</strong><br>
+                        {{ votacao.descricao|truncatewords:20 }}
+                    </div>
+                    <div class="d-flex flex-shrink-0 align-items-center">
+                        <a href="{% url 'core:sala_de_reuniao' votacao.pk %}" class="btn btn-primary btn-sm">Detalhes</a>
+                        {% if user.tipo_usuario == 'sindico' and votacao.criado_por == user %}
+                            <a href="{% url 'core:editar_votacao' votacao.pk %}" class="btn btn-warning btn-sm ms-2">
+                                ✏️ Editar Reunião
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
-                <a href="{% url 'core:sala_de_reuniao' votacao.pk %}" class="btn btn-primary btn-sm">Detalhes</a>
-                {% if user.tipo_usuario == 'sindico' and votacao.criado_por == user %}
-                <a href="{% url 'core:editar_votacao' votacao.pk %}" class="btn btn-warning btn-sm ms-2">
-                    ✏️ Editar Reunião
-                </a>
-            {% endif %}
             </li>
         {% empty %}
             <li class="list-group-item">Nenhuma votação disponível no momento.</li>
